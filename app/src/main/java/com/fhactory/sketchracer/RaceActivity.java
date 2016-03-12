@@ -5,16 +5,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.WindowManager;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RaceActivity extends AppCompatActivity {
 
-    //public static final String EXTRA_CIRCUIT = "circuit";
-
-    //sorry! Too many points to be passed by Intent Extra
-    public static ArrayList<Point> pts;
+    public static final String EXTRA_CIRCUIT = "circuit";
 
     private GameView gameView;
 
@@ -28,6 +24,7 @@ public class RaceActivity extends AppCompatActivity {
 
         gameView = (GameView) findViewById(R.id.race_view);
 
+        ArrayList<Point> pts = getIntent().getParcelableArrayListExtra(EXTRA_CIRCUIT);
         Point[] ptsArray = new Point[pts.size()];
         pts.toArray(ptsArray);
 
