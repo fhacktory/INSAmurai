@@ -2,4 +2,5 @@
     <string name="app_name">Sketch Racer</string>
     <string name="unknown_error">Une erreur inconnue s\'est produite, veuillez réessayer.</string>
     <string name="must_take_photo">Vous devez prendre la photo du circuit sur lequel vous allez jouer.</string>
+    <string name="photo_error">Erreur de déclenchement de l\'appareil photo.</string>
 </resources>
