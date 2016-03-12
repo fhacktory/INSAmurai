@@ -1,2 +1,2 @@
-# sketchracer
-Android car race game based on sketch circuit recognition.
+# INSAmurai
+Build'n'play de voiture (sur Android)
