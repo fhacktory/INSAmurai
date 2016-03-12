@@ -26,7 +26,7 @@ public class Sketch {
         this.path = path;
     }
 
-    public void compute_contures() {
+    public List<MatOfPoint> computeContours() {
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
         Mat original = image.clone();
@@ -39,11 +39,11 @@ public class Sketch {
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy  = new Mat();
 
-        Imgproc.findContours(image,contours,hierarchy,Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        for(int i=0;i<contours.size();++i)
-        {
-            System.out.println("This is our "+ i + "contour");
-        }
+        System.out.println(contours.size());
+        int maximum = 0;
+        int pos = 0;
+        return contours;
     }
 }

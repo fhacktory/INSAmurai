@@ -52,8 +52,9 @@ public class PhotoActivity extends AppCompatActivity {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
                 //setPic();
-                Sketch sketch = new Sketch(photoFile.getAbsolutePath());
-                sketch.compute_contures();
+
+                Sketch sketch = new Sketch("/storage/emulated/0/photo.jpg");
+                sketch.computeContours();
             } else if(resultCode == RESULT_CANCELED) {
                 new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.must_take_photo))
