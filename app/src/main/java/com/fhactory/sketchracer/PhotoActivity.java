@@ -47,9 +47,7 @@ public class PhotoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
-                Bitmap photo = BitmapFactory.decodeFile(photoFile.getAbsolutePath());
-                System.out.println(photoFile.getAbsolutePath());
-                imageView.setImageBitmap(getResizedBitmap(photo));
+                setPic();
             } else if(resultCode == RESULT_CANCELED) {
                 new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.must_take_photo))
@@ -109,15 +107,24 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    public static Bitmap getResizedBitmap(Bitmap bitmap) {
-        int maxHeight = 2048;
-        int maxWidth = 2048;
-        float scale = Math.min(((float)maxHeight / bitmap.getWidth()), ((float)maxWidth / bitmap.getHeight()));
+    private void setPic() {
+        // Get the dimensions of the bitmap
+        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+        bmOptions.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
+        double photoW = bmOptions.outWidth / 2048d;
+        double photoH = bmOptions.outHeight / 2048d;
 
-        Matrix matrix = new Matrix();
-        matrix.postScale(scale, scale);
+        // Determine how much to scale down the image
+        int scaleFactor = Math.min((int)Math.ceil(photoW), (int)Math.ceil(photoH));
 
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        // Decode the image file into a Bitmap sized to fill the View
+        bmOptions.inJustDecodeBounds = false;
+        bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inPurgeable = true;
+
+        Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
+        imageView.setImageBitmap(bitmap);
     }
 
     public static void cleanTempDir(Context c) {
