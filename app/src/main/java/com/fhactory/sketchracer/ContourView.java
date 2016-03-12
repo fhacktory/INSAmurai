@@ -2,15 +2,12 @@ package com.fhactory.sketchracer;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.View;
 
-import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
-import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,5 +62,18 @@ public class ContourView extends View {
             c.drawLine((float) ((points[i].x - minX) / scale), (float) ((points[i].y - minY) / scale),
                        (float) ((points[j].x - minX) / scale), (float) ((points[j].y - minY) / scale), paint);
         }
+    }
+
+    public ArrayList<android.graphics.Point> getPoints() {
+        ArrayList<android.graphics.Point> pts = new ArrayList<>();
+
+        double scale = Math.max((double) (maxX - minX) / 1000, (double) (maxY - minY) / 1000);
+
+        Point[] points = toDisplay.toArray();
+        for (Point point : points) {
+            pts.add(new android.graphics.Point((int) ((point.x - minX) / scale), (int) ((point.y - minY) / scale)));
+        }
+
+        return pts;
     }
 }

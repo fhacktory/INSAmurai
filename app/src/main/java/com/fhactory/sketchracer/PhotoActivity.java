@@ -3,22 +3,21 @@ package com.fhactory.sketchracer;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
+import android.graphics.Point;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.WindowManager;
-import android.widget.ImageView;
 
 import org.opencv.core.MatOfPoint;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PhotoActivity extends AppCompatActivity {
@@ -119,26 +118,6 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    /*private void setPic() {
-        // Get the dimensions of the bitmap
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
-        double photoW = bmOptions.outWidth / 2048d;
-        double photoH = bmOptions.outHeight / 2048d;
-
-        // Determine how much to scale down the image
-        int scaleFactor = Math.min((int)Math.ceil(photoW), (int)Math.ceil(photoH));
-
-        // Decode the image file into a Bitmap sized to fill the View
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
-        imageView.setImageBitmap(bitmap);
-    }*/
-
     public static void cleanTempDir(Context c) {
         File directory = c.getExternalFilesDir("temporary");
         if (directory != null) {
@@ -151,5 +130,27 @@ public class PhotoActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    public void retry(View v) {
+        takePhoto();
+    }
+
+    public void use(View v) {
+        ArrayList<Point> pts = contourView.getPoints();
+
+        //keeping only a tiny part of the points
+        for(int i = 0; i < pts.size(); i++) {
+            for(int l = 0; l < 30; l++) {
+                if(i < pts.size()) pts.remove(i);
+            }
+        }
+        Log.d("PhotoActivity", "Now passing "+pts.size()+" points!");
+
+        Intent i = new Intent(this, RaceActivity.class);
+        //i.putParcelableArrayListExtra(RaceActivity.EXTRA_CIRCUIT, pts);
+        RaceActivity.pts = pts;
+
+        startActivity(i);
     }
 }

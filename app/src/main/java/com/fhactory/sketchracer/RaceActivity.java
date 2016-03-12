@@ -5,10 +5,16 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.WindowManager;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
 public class RaceActivity extends AppCompatActivity {
+
+    //public static final String EXTRA_CIRCUIT = "circuit";
+
+    //sorry! Too many points to be passed by Intent Extra
+    public static ArrayList<Point> pts;
 
     private GameView gameView;
 
@@ -22,27 +28,9 @@ public class RaceActivity extends AppCompatActivity {
 
         gameView = (GameView) findViewById(R.id.race_view);
 
-        List<Point> ellipse = new ArrayList<>();
-        for(double d = 0; d < 2 * Math.PI; d += 0.02) {
-            ellipse.add(new Point((int)(1000*Math.cos(d)), (int)(600*Math.sin(d))));
-        }
+        Point[] ptsArray = new Point[pts.size()];
+        pts.toArray(ptsArray);
 
-        Point[] array = new Point[ellipse.size()];
-        ellipse.toArray(array);
-
-        /*
-        int density = 200;
-
-        List<Point> square = new ArrayList<>();
-        for(int i = 0; i < density; i++) square.add(new Point(0, i));
-        for(int i = 0; i < density; i++) square.add(new Point(i, density));
-        for(int i = 0; i < density; i++) square.add(new Point(density, density-i));
-        for(int i = 0; i < density; i++) square.add(new Point(density-i, 0));
-
-        Point[] array = new Point[square.size()];
-        square.toArray(array);
-        */
-
-        gameView.setCircuit(new Circuit(array));
+        gameView.setCircuit(new Circuit(ptsArray));
     }
 }

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Circuit {
-    private static final int WIDTH = 70;
+    private static final int WIDTH = 40;
 
     private List<Point> outside, inside;
 
@@ -37,7 +37,7 @@ public class Circuit {
 
             if(normeVecteurNormal != 0.0) {
                 outside.add(new Point((int) (middle.x + normalX * WIDTH), (int) (middle.y + normalY * WIDTH)));
-                inside.add(points[i]);
+                inside.add(new Point((int) (middle.x - normalX * WIDTH), (int) (middle.y - normalY * WIDTH)));
             }
         }
 
