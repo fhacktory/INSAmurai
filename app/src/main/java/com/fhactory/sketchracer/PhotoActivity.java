@@ -1,4 +1,4 @@
-package com.fhactory.sketchrace;
+package com.fhactory.sketchracer;
 
 import android.content.DialogInterface;
 import android.content.Intent;

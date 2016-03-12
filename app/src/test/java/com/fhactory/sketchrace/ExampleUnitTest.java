@@ -1,4 +1,4 @@
-package com.fhactory.sketchrace;
+package com.fhactory.sketchracer;
 
 import org.junit.Test;
 
