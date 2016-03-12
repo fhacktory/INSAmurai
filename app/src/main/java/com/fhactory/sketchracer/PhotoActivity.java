@@ -51,7 +51,7 @@ public class PhotoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
-                setPic();
+                //setPic();
                 Sketch sketch = new Sketch(photoFile.getAbsolutePath());
                 sketch.compute_contures();
             } else if(resultCode == RESULT_CANCELED) {
@@ -113,7 +113,7 @@ public class PhotoActivity extends AppCompatActivity {
         }
     }
 
-    private void setPic() {
+    /*private void setPic() {
         // Get the dimensions of the bitmap
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
@@ -131,7 +131,7 @@ public class PhotoActivity extends AppCompatActivity {
 
         Bitmap bitmap = BitmapFactory.decodeFile(photoFile.getAbsolutePath(), bmOptions);
         imageView.setImageBitmap(bitmap);
-    }
+    }*/
 
     public static void cleanTempDir(Context c) {
         File directory = c.getExternalFilesDir("temporary");
