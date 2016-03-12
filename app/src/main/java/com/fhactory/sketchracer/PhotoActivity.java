@@ -15,12 +15,15 @@ import android.util.Log;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
+import org.opencv.core.MatOfPoint;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 public class PhotoActivity extends AppCompatActivity {
 
-    private ImageView imageView;
+    private ContourView contourView;
     private File photoFile;
 
     private static final int CAMERA_REQUEST_CODE = 12345;
@@ -33,9 +36,12 @@ public class PhotoActivity extends AppCompatActivity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        imageView = (ImageView) findViewById(R.id.track_image_view);
+        contourView = (ContourView) findViewById(R.id.track_contour_view);
 
         if(savedInstanceState == null) {
+            /*Sketch sketch = new Sketch("/storage/emulated/0/photo.jpg");
+            List<MatOfPoint> contours = sketch.computeContours();
+            contourView.setPoints(contours);*/
             takePhoto();
         }
     }
@@ -51,10 +57,9 @@ public class PhotoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
-                //setPic();
-
-                Sketch sketch = new Sketch("/storage/emulated/0/photo.jpg");
-                sketch.computeContours();
+                Sketch sketch = new Sketch(photoFile.getAbsolutePath());
+                List<MatOfPoint> contours = sketch.computeContours();
+                contourView.setPoints(contours);
             } else if(resultCode == RESULT_CANCELED) {
                 new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.must_take_photo))

@@ -1,6 +1,7 @@
 package com.fhactory.sketchracer;
 
 import android.graphics.Bitmap;
+import android.util.Log;
 
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -41,9 +42,8 @@ public class Sketch {
 
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        System.out.println(contours.size());
-        int maximum = 0;
-        int pos = 0;
+        Log.d("Sketch", contours.size()+" contours found");
+
         return contours;
     }
 }
