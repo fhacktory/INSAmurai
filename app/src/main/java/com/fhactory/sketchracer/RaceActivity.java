@@ -30,6 +30,19 @@ public class RaceActivity extends AppCompatActivity {
         Point[] array = new Point[ellipse.size()];
         ellipse.toArray(array);
 
+        /*
+        int density = 200;
+
+        List<Point> square = new ArrayList<>();
+        for(int i = 0; i < density; i++) square.add(new Point(0, i));
+        for(int i = 0; i < density; i++) square.add(new Point(i, density));
+        for(int i = 0; i < density; i++) square.add(new Point(density, density-i));
+        for(int i = 0; i < density; i++) square.add(new Point(density-i, 0));
+
+        Point[] array = new Point[square.size()];
+        square.toArray(array);
+        */
+
         gameView.setCircuit(new Circuit(array));
     }
 }

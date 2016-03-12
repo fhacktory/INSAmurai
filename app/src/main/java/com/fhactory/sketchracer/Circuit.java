@@ -37,7 +37,7 @@ public class Circuit {
 
             if(normeVecteurNormal != 0.0) {
                 outside.add(new Point((int) (middle.x + normalX * WIDTH), (int) (middle.y + normalY * WIDTH)));
-                inside.add(new Point((int) (middle.x - normalX * WIDTH), (int) (middle.y - normalY * WIDTH)));
+                inside.add(points[i]);
             }
         }
 
