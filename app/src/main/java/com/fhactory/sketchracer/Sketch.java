@@ -30,9 +30,7 @@ public class Sketch {
     public List<MatOfPoint> computeContours() {
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-        Mat original = image.clone();
-
-        Imgproc.threshold(image,image,100,128,Imgproc.THRESH_BINARY_INV);
+        Imgproc.medianBlur(image,image,9);
 
         double[] center = {(double)image.width()/2,(double)image.height()/2};
         Point image_center = new Point(center);
@@ -40,10 +38,18 @@ public class Sketch {
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy  = new Mat();
 
-        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.Canny(image, image, 10,50
+                , 3, true);
 
-        Log.d("Sketch", contours.size()+" contours found");
+        int dilation_size = 5;
+        int erosion_size = 1;
+        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*erosion_size + 1, 2*erosion_size+1));
+        //Imgproc.erode(image, image, element);
+        Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2 * dilation_size + 1, 2 * dilation_size + 1));
+        Imgproc.dilate(image, image, element1);
+        Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
+        Log.d("Sketch", contours.size() + " contours found");
         return contours;
     }
 }
