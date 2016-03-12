@@ -1,5 +1,6 @@
 package com.fhactory.sketchracer;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -22,6 +23,22 @@ import java.util.List;
 
 public class PhotoActivity extends AppCompatActivity {
 
+    private DialogInterface.OnClickListener finish = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            finish();
+        }
+    };
+
+    private DialogInterface.OnClickListener takePhoto = new DialogInterface.OnClickListener() {
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            takePhoto();
+        }
+    };
+
+
+
     private ContourView contourView;
     private File photoFile;
 
@@ -38,9 +55,6 @@ public class PhotoActivity extends AppCompatActivity {
         contourView = (ContourView) findViewById(R.id.track_contour_view);
 
         if(savedInstanceState == null) {
-            /*Sketch sketch = new Sketch("/storage/emulated/0/photo.jpg");
-            List<MatOfPoint> contours = sketch.computeContours();
-            contourView.setPoints(contours);*/
             takePhoto();
         }
     }
@@ -56,27 +70,24 @@ public class PhotoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
-                Sketch sketch = new Sketch(photoFile.getAbsolutePath());
-                List<MatOfPoint> contours = sketch.computeContours();
-                contourView.setPoints(contours);
+                scanPhoto();
             } else if(resultCode == RESULT_CANCELED) {
-                new AlertDialog.Builder(this)
-                    .setMessage(getString(R.string.must_take_photo))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            takePhoto();
-                        }
-                    });
+                if(!contourView.hasPoints()) {
+                    new AlertDialog.Builder(this)
+                            .setTitle(getString(R.string.error))
+                            .setMessage(getString(R.string.must_take_photo))
+                            .setPositiveButton(getString(R.string.retry), takePhoto)
+                            .setNegativeButton(getString(R.string.exit), finish)
+                            .setCancelable(false)
+                            .show();
+                }
             } else {
                 new AlertDialog.Builder(this)
                     .setMessage(getString(R.string.unknown_error))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            takePhoto();
-                        }
-                    });
+                    .setPositiveButton(getString(R.string.retry), takePhoto)
+                    .setNegativeButton(getString(R.string.exit), finish)
+                    .setCancelable(false)
+                    .show();
             }
         }
     }
@@ -98,24 +109,81 @@ public class PhotoActivity extends AppCompatActivity {
                 startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
             } catch (IOException e) {
                 new AlertDialog.Builder(this)
-                    .setMessage(getString(R.string.photo_error))
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            finish();
-                        }
-                    });
+                        .setTitle(getString(R.string.error))
+                        .setMessage(getString(R.string.photo_error))
+                        .setPositiveButton(getString(R.string.ok), finish)
+                        .setCancelable(false)
+                        .show();
             }
         } else {
             new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.error))
                 .setMessage(getString(R.string.photo_error))
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        finish();
-                    }
-                });
+                .setPositiveButton(getString(R.string.ok), finish)
+                    .setCancelable(false)
+                .show();
         }
+    }
+
+    private void scanPhoto() {
+        final ProgressDialog pd =
+                ProgressDialog.show(this, getString(R.string.processing), getString(R.string.search_contour), true, false);
+
+        new Thread() {
+            @Override public void run() {
+                Sketch sketch = new Sketch(photoFile.getAbsolutePath());
+                List<MatOfPoint> contours = sketch.computeContours();
+
+                runOnUiThread(new Runnable() {
+                      @Override
+                      public void run() {
+                          pd.setMessage(getString(R.string.contour_selecting));
+                      }
+                  });
+
+                if(contours.size() != 0) {
+                    MatOfPoint biggest = contours.get(0);
+                    for (MatOfPoint candidate : contours) {
+                        if (biggest.toArray().length < candidate.toArray().length)
+                            biggest = candidate;
+                    }
+                    final MatOfPoint finalBiggest = biggest;
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            contourView.setPoints(finalBiggest);
+                            pd.dismiss();
+                            cleanTempDir(PhotoActivity.this);
+                        }
+                    });
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            pd.dismiss();
+                            cleanTempDir(PhotoActivity.this);
+
+                            if(!contourView.hasPoints()) {
+                                new AlertDialog.Builder(PhotoActivity.this)
+                                        .setTitle(getString(R.string.error))
+                                        .setMessage(getString(R.string.no_contour))
+                                        .setPositiveButton(getString(R.string.retry), takePhoto)
+                                        .setCancelable(false)
+                                        .show();
+                            } else {
+                                new AlertDialog.Builder(PhotoActivity.this)
+                                        .setTitle(getString(R.string.error))
+                                        .setMessage(getString(R.string.no_contour))
+                                        .setPositiveButton(getString(R.string.cancel), takePhoto)
+                                        .setPositiveButton(getString(R.string.retry), takePhoto)
+                                        .show();
+                            }
+                        }
+                    });
+                }
+            }
+        }.start();
     }
 
     public static void cleanTempDir(Context c) {

@@ -10,7 +10,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Point;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class ContourView extends View {
     private MatOfPoint toDisplay = null;
@@ -21,15 +20,9 @@ public class ContourView extends View {
         super(context, attrs);
     }
 
-    public void setPoints(List<MatOfPoint> pointsToDraw) {
+    public void setPoints(MatOfPoint pointsToDraw) {
         //take the biggest MatOfPoint
-        MatOfPoint biggest = pointsToDraw.get(0);
-        for(MatOfPoint candidate : pointsToDraw) {
-            if (biggest.toArray().length < candidate.toArray().length)
-                biggest = candidate;
-        }
-
-        toDisplay  = biggest;
+        toDisplay  = pointsToDraw;
 
         minX = Integer.MAX_VALUE;
         minY = Integer.MAX_VALUE;
@@ -64,7 +57,13 @@ public class ContourView extends View {
         }
     }
 
+    public boolean hasPoints() {
+        return toDisplay != null;
+    }
+
     public ArrayList<android.graphics.Point> getPoints() {
+        if(toDisplay == null) return null;
+
         ArrayList<android.graphics.Point> pts = new ArrayList<>();
 
         double scale = Math.max((double) (maxX - minX) / 1000, (double) (maxY - minY) / 1000);

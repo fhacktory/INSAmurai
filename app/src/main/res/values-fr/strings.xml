@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Sketch Racer</string>
+    <string name="unknown_error">Une erreur inconnue s\'est produite, veuillez réessayer.</string>
+    <string name="must_take_photo">Vous devez prendre la photo du circuit sur lequel vous allez jouer.</string>
+    <string name="photo_error">Erreur de déclenchement de l\'appareil photo.</string>
+    <string name="retry">Réessayer</string>
+    <string name="use">Utiliser</string>
+    <string name="error">Erreur</string>
+    <string name="no_contour">Aucun contour trouvé sur cette photo. Veuillez réessayer.</string>
+    <string name="ok">OK</string>
+    <string name="contour_selecting">Sélection du contour&#8230;</string>
+    <string name="search_contour">Recherche de contours&#8230;</string>
+    <string name="processing">Traitement</string>
+    <string name="exit">Quitter</string>
+    <string name="cancel">Annuler</string>
+</resources>
