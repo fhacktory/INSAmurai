@@ -4,9 +4,11 @@ import android.graphics.Point;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Matrix4;
@@ -25,6 +27,7 @@ import com.badlogic.gdx.physics.box2d.joints.RevoluteJointDef;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
@@ -37,7 +40,7 @@ import java.util.List;
 
 public class SketchRacer extends ApplicationAdapter {
 
-    private final static float MAX_STEER_ANGLE = (float) (Math.PI/3);
+    private final static float MAX_STEER_ANGLE = (float) (Math.PI/4);
     private final static float STEER_SPEED = 1.5f;
     private final static float HORSEPOWERS = 60;
 
@@ -70,6 +73,9 @@ public class SketchRacer extends ApplicationAdapter {
 
     private Circuit circuit;
     private int turns;
+
+    private List<Vector2> inside, outside;
+    private Vector2 start;
 
     Vector2 startingPos;
 
@@ -105,6 +111,13 @@ public class SketchRacer extends ApplicationAdapter {
         //setBounds(x,y,width,height)
         touchpad.setBounds(30, 30, 300, 300);
         stage.addActor(touchpad);
+
+        // Add timer label
+        Skin timerSkin = new Skin();
+        Label.LabelStyle timerStyle = new Label.LabelStyle();
+        timerStyle.font = timerSkin.getFont("data/default.fnt");
+        Label timer = new Label("Hello", timerStyle);
+        timer.setBounds(Gdx.graphics.getWidth() - 100, 10, Gdx.graphics.getWidth() - 10, 50);
 
         createCircuit();
 
@@ -326,6 +339,9 @@ public class SketchRacer extends ApplicationAdapter {
         wallFixtureDef.density = 1;
         wall.createFixture(wallFixtureDef);
         wallShape.dispose();
+        this.inside = newInside;
+        this.outside = newOutside;
+        this.start = start;
     }
 
     @Override
