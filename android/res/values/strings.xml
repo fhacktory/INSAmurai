@@ -2,7 +2,6 @@
     <string name="app_name">Sketch Racer</string>
     <string name="unknown_error">An unknown error occured, please retry.</string>
     <string name="must_take_photo">You must choose a picture of the circuit you want to play with.</string>
-    <string name="photo_error">Error while initializing camera.</string>
     <string name="retry">Retry</string>
     <string name="use">Use</string>
     <string name="error">Error</string>
@@ -10,7 +9,6 @@
     <string name="ok">OK</string>
     <string name="contour_selecting">Selecting contour&#8230;</string>
     <string name="search_contour">Searching contours&#8230;</string>
-    <string name="processing">Processing</string>
     <string name="exit">Exit</string>
     <string name="cancel">Cancel</string>
     <string name="unsupported">Unsupported source. Please try another image source.</string>
