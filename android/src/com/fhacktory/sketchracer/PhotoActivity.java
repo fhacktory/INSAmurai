@@ -114,7 +114,6 @@ public class PhotoActivity extends AppCompatActivity {
             } else if(resultCode == RESULT_CANCELED) {
                 if(!contourView.hasPoints()) {
                     new AlertDialog.Builder(this)
-                            .setTitle(getString(R.string.error))
                             .setMessage(getString(R.string.must_take_photo))
                             .setPositiveButton(getString(R.string.retry), takePhoto)
                             .setNegativeButton(getString(R.string.exit), finish)
@@ -142,7 +141,7 @@ public class PhotoActivity extends AppCompatActivity {
         } catch (IOException e) {
             new AlertDialog.Builder(this)
                     .setTitle(getString(R.string.error))
-                    .setMessage(getString(R.string.photo_error))
+                    .setMessage(getString(R.string.unknown_error))
                     .setPositiveButton(getString(R.string.ok), finish)
                     .setCancelable(false)
                     .show();
@@ -180,7 +179,7 @@ public class PhotoActivity extends AppCompatActivity {
 
     private void scanPhoto() {
         final ProgressDialog pd =
-                ProgressDialog.show(this, getString(R.string.processing), getString(R.string.search_contour), true, false);
+                ProgressDialog.show(this, "", getString(R.string.search_contour), true, false);
 
         new Thread() {
             @Override public void run() {
