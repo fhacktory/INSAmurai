@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.fhacktory.sketchracer.PhotoActivity"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/retry"
+            android:id="@+id/button"
+            android:layout_weight="1"
+            android:onClick="retry" />
+
+        <Button
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="@string/use"
+            android:id="@+id/button2"
+            android:layout_weight="1"
+            android:onClick="use" />
+    </LinearLayout>
+
+    <com.fhacktory.sketchracer.ContourView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/track_contour_view"
+        android:layout_margin="16dp" />
+</LinearLayout>

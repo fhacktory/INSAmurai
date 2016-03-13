@@ -68,4 +68,6 @@ crashlytics-build.properties
 fabric.properties
 
 # Native libs
-app/src/main/jniLibs/
+jniLibs/
+*.so
+*.a
