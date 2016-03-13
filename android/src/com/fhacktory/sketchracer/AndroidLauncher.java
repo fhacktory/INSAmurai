@@ -34,7 +34,7 @@ public class AndroidLauncher extends AppCompatActivity implements AndroidFragmen
 		accelerator = (SeekBar) findViewById(R.id.accelerate);
 
 		accelerator.setMax(120);
-		accelerator.setProgress((int)(SketchRacer.HORSEPOWERS) + 20);
+		accelerator.setProgress(20);
 
 		// 6. Finally, replace the AndroidLauncher activity content with the Libgdx Fragment.
 		GameFragment fragment = new GameFragment();

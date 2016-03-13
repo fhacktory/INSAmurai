@@ -1,9 +1,6 @@
 package com.fhacktory.sketchracer;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -13,16 +10,9 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.PolygonRegion;
-import com.badlogic.gdx.graphics.g2d.PolygonSprite;
-import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -41,8 +31,6 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.utils.FloatArray;
-import com.badlogic.gdx.utils.ShortArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import java.text.DecimalFormat;
@@ -61,7 +49,7 @@ public class SketchRacer extends ApplicationAdapter {
     private final static Vector2 leftFrontWheelPosition = new Vector2(-1.5f,-1.9f);
     private final static Vector2 rightFrontWheelPosition = new Vector2(1.5f,-1.9f);
 
-    private float engineSpeed = HORSEPOWERS;
+    private float engineSpeed = 0;
     private float steeringAngle = 0;
 
     private World world;
@@ -324,7 +312,7 @@ public class SketchRacer extends ApplicationAdapter {
         world.createJoint(leftRearJointDef);
         world.createJoint(rightRearJointDef);
 
-        float angle = (startingDir.angle()) % (2f*(float)Math.PI);
+        float angle = (float)(Math.PI/2f + Math.atan2(startingDir.y, startingDir.x));
 
         body.setTransform(body.getPosition(), angle);
         leftWheel.setTransform(leftWheel.getPosition(), angle);
@@ -332,7 +320,9 @@ public class SketchRacer extends ApplicationAdapter {
         leftRearWheel.setTransform(leftRearWheel.getPosition(), angle);
         rightRearWheel.setTransform(rightRearWheel.getPosition(), angle);
 
-        targetAngle = body.getAngle();
+        targetAngle = angle - (float)Math.PI/2f;
+        System.out.println(body.getAngle());
+        System.out.println(angle);
     }
 
     private void createCircuit() {
@@ -437,7 +427,7 @@ public class SketchRacer extends ApplicationAdapter {
         startLine.createFixture(startLineFixtureDef);
         startLineShape.dispose();
 
-        startingDir = norm.scl(1/2f);
+        startingDir = norm;
     }
 
     @Override
