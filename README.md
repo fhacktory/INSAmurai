@@ -9,8 +9,8 @@ Ce projet a été créé avec Android Studio (http://developer.android.com/sdk/i
 
 ## Captures d'écran
 
-![Alt text](/../screenshots/Screenshots/Screenshot0.png?raw=true)
-![Alt text](/../screenshots/Screenshots/Screenshot1.png?raw=true)
-![Alt text](/../screenshots/Screenshots/Screenshot2.png?raw=true)
-![Alt text](/../screenshots/Screenshots/Screenshot3.png?raw=true)
-![Alt text](/../screenshots/Screenshots/Screenshot4.png?raw=true)
+![Alt text](/../screenshots/screenshots/Screenshot0.png?raw=true)
+![Alt text](/../screenshots/screenshots/Screenshot1.png?raw=true)
+![Alt text](/../screenshots/screenshots/Screenshot2.png?raw=true)
+![Alt text](/../screenshots/screenshots/Screenshot3.png?raw=true)
+![Alt text](/../screenshots/screenshots/Screenshot4.png?raw=true)
