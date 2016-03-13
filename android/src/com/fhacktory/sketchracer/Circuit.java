@@ -172,6 +172,7 @@ public class Circuit implements Parcelable {
 
 
 
+
     public boolean PointInsideCircuit(Point x){
         if((PointInPolygon(outside,x) || PointOnPolygon(outside,x)) && !(PointInPolygon(inside,x)))
             return true;
@@ -209,4 +210,29 @@ public class Circuit implements Parcelable {
 
     public double dot(Point p, Point q, Point a){ return (p.x-a.x)*(q.x-a.x)+(p.y-a.y)*(q.y-a.y);}
     public double dist2(Point p, Point q)   { return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y); }
+
+    public List<Point> getInside() {
+        return inside;
+    }
+
+    public List<Point> getOutside() {
+        return outside;
+    }
+
+    public int getMinX() {
+        return minX;
+    }
+
+    public int getMinY() {
+        return minY;
+    }
+
+    public int getMaxX() {
+        return maxX;
+    }
+
+    public int getMaxY() {
+        return maxY;
+    }
+
 }

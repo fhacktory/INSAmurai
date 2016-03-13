@@ -1,5 +1,7 @@
 package com.fhacktory.sketchracer;
 
+import android.graphics.Point;
+
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -12,6 +14,8 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.EdgeShape;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
@@ -26,13 +30,16 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import java.util.ArrayList;
+import java.util.EmptyStackException;
+import java.util.List;
+
+
 public class SketchRacer extends ApplicationAdapter {
 
     private final static float MAX_STEER_ANGLE = (float) (Math.PI/3);
     private final static float STEER_SPEED = 1.5f;
-    private final static float SIDEWAYS_FRICTION_FORCE = 10;
-    private final static float HORSEPOWERS = 40;
-    private final static Vector2 CAR_STARTING_POS = new Vector2(0,0);
+    private final static float HORSEPOWERS = 60;
 
     private final static Vector2 leftRearWheelPosition = new Vector2(-1.5f,1.9f);
     private final static Vector2 rightRearWheelPosition = new Vector2(1.5f,1.9f);
@@ -63,6 +70,8 @@ public class SketchRacer extends ApplicationAdapter {
 
     private Circuit circuit;
     private int turns;
+
+    Vector2 startingPos;
 
     public SketchRacer(Circuit circuit, int turns) {
         this.circuit = circuit;
@@ -97,7 +106,8 @@ public class SketchRacer extends ApplicationAdapter {
         touchpad.setBounds(30, 30, 300, 300);
         stage.addActor(touchpad);
 
-        //Create car
+        createCircuit();
+
         createCar();
 
         Gdx.input.setInputProcessor(stage);
@@ -119,7 +129,7 @@ public class SketchRacer extends ApplicationAdapter {
                 float xp = touchpad.getKnobPercentX();
                 float yp = touchpad.getKnobPercentY();
                 if(xp == 0) {
-                    targetAngle = y >= 0 ? (float)Math.PI/2 : -(float)Math.PI/2;
+                    targetAngle = yp >= 0 ? (float)Math.PI/2f : -(float)Math.PI/2f;
                 } else {
                     targetAngle = (float)Math.atan(yp/xp);
                     if(xp < 0) targetAngle += (float) Math.PI;
@@ -129,7 +139,7 @@ public class SketchRacer extends ApplicationAdapter {
             @Override
             public void touchUp (InputEvent event, float x, float y, int pointer, int button)
             {
-                targetAngle = body.getAngle() - (float)Math.PI / 2;
+                targetAngle = body.getAngle() - (float)Math.PI/2f;
             }
         });
 
@@ -147,31 +157,31 @@ public class SketchRacer extends ApplicationAdapter {
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.linearDamping = 1;
         bodyDef.angularDamping = 1;
-        bodyDef.position.set(CAR_STARTING_POS.cpy());
+        bodyDef.position.set(startingPos.cpy());
 
         body = world.createBody(bodyDef);
 
         BodyDef leftWheelDef = new BodyDef();
         leftWheelDef.type = BodyDef.BodyType.DynamicBody;
-        leftWheelDef.position.set(CAR_STARTING_POS.cpy());
+        leftWheelDef.position.set(startingPos.cpy());
         leftWheelDef.position.add(leftFrontWheelPosition);
         leftWheel = world.createBody(leftWheelDef);
 
         BodyDef rightWheelDef = new BodyDef();
         rightWheelDef.type = BodyDef.BodyType.DynamicBody;
-        rightWheelDef.position.set(CAR_STARTING_POS.cpy());
+        rightWheelDef.position.set(startingPos.cpy());
         rightWheelDef.position.add(rightFrontWheelPosition);
         rightWheel = world.createBody(rightWheelDef);
 
         BodyDef leftRearWheelDef = new BodyDef();
         leftRearWheelDef.type = BodyDef.BodyType.DynamicBody;
-        leftRearWheelDef.position.set(CAR_STARTING_POS.cpy());
+        leftRearWheelDef.position.set(startingPos.cpy());
         leftRearWheelDef.position.add(leftRearWheelPosition);
         leftRearWheel = world.createBody(leftRearWheelDef);
 
         BodyDef rightRearWheelDef = new BodyDef();
         rightRearWheelDef.type = BodyDef.BodyType.DynamicBody;
-        rightRearWheelDef.position.set(CAR_STARTING_POS.cpy());
+        rightRearWheelDef.position.set(startingPos.cpy());
         rightRearWheelDef.position.add(rightRearWheelPosition);
         rightRearWheel = world.createBody(rightRearWheelDef);
 
@@ -245,28 +255,77 @@ public class SketchRacer extends ApplicationAdapter {
         world.createJoint(rightRearJointDef);
     }
 
-    private Body createWall(float x1, float y1, float x2, float y2) {
-        BodyDef boxBodyDef = new BodyDef();
-        boxBodyDef.type = BodyDef.BodyType.StaticBody;
-        boxBodyDef.position.set(0, 0);
-
-        Body boxBody = world.createBody(boxBodyDef);
-
-        PolygonShape boxShape = new PolygonShape();
-        Vector2[] vertices = new Vector2[4];
-        vertices[0] = new Vector2(x1, y1);
-        vertices[1] = new Vector2(x2, y1);
-        vertices[2] = new Vector2(x2, y2);
-        vertices[3] = new Vector2(x1, y2);
-        boxShape.set(vertices);
-
-        FixtureDef boxFixtureDef = new FixtureDef();
-        boxFixtureDef.shape = boxShape;
-        boxFixtureDef.density = 1;
-
-        boxBody.createFixture(boxFixtureDef);
-        boxShape.dispose();
-        return boxBody;
+    private void createCircuit() {
+        // re-scale circuit shape
+        List<Point> inside = circuit.getInside();
+        List<Point> outside = circuit.getOutside();
+        List<Vector2> newInside = new ArrayList<Vector2>(inside.size());
+        List<Vector2> newOutside = new ArrayList<Vector2>(outside.size());
+        Vector2 start = new Vector2(circuit.getStart().x, circuit.getStart().y);
+        int midX = (circuit.getMaxX() - circuit.getMinX())/2;
+        int midY = (circuit.getMaxY() - circuit.getMinY())/2;
+        for(Point p : inside) {
+            newInside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+        }
+        for(Point p : outside) {
+            newOutside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+        }
+        start.x = (start.x - midX)/5;
+        start.y = (start.y - midY)/5;
+        startingPos = new Vector2(start.x,start.y);
+        // build walls
+        BodyDef wallDef;
+        Body wall;
+        EdgeShape wallShape;
+        FixtureDef wallFixtureDef;
+        for(int i = 0; i < newInside.size() - 1; i++) {
+            wallDef = new BodyDef();
+            wallDef.type = BodyDef.BodyType.StaticBody;
+            wallDef.position.set(0,0);
+            wall = world.createBody(wallDef);
+            wallShape = new EdgeShape();
+            wallShape.set(newInside.get(i).x,newInside.get(i).y,newInside.get(i+1).x,newInside.get(i+1).y);
+            wallFixtureDef = new FixtureDef();
+            wallFixtureDef.shape = wallShape;
+            wallFixtureDef.density = 1;
+            wall.createFixture(wallFixtureDef);
+            wallShape.dispose();
+        }
+        wallDef = new BodyDef();
+        wallDef.type = BodyDef.BodyType.StaticBody;
+        wallDef.position.set(0,0);
+        wall = world.createBody(wallDef);
+        wallShape = new EdgeShape();
+        wallShape.set(newInside.get(newInside.size() - 1).x,newInside.get(newInside.size() - 1).y,newInside.get(0).x,newInside.get(0).y);
+        wallFixtureDef = new FixtureDef();
+        wallFixtureDef.shape = wallShape;
+        wallFixtureDef.density = 1;
+        wall.createFixture(wallFixtureDef);
+        wallShape.dispose();
+        for(int i = 0; i < newOutside.size() - 1; i++) {
+            wallDef = new BodyDef();
+            wallDef.type = BodyDef.BodyType.StaticBody;
+            wallDef.position.set(0,0);
+            wall = world.createBody(wallDef);
+            wallShape = new EdgeShape();
+            wallShape.set(newOutside.get(i).x,newOutside.get(i).y,newOutside.get(i+1).x,newOutside.get(i+1).y);
+            wallFixtureDef = new FixtureDef();
+            wallFixtureDef.shape = wallShape;
+            wallFixtureDef.density = 1;
+            wall.createFixture(wallFixtureDef);
+            wallShape.dispose();
+        }
+        wallDef = new BodyDef();
+        wallDef.type = BodyDef.BodyType.StaticBody;
+        wallDef.position.set(0,0);
+        wall = world.createBody(wallDef);
+        wallShape = new EdgeShape();
+        wallShape.set(newOutside.get(newOutside.size() - 1).x,newOutside.get(newOutside.size() - 1).y,newOutside.get(0).x,newOutside.get(0).y);
+        wallFixtureDef = new FixtureDef();
+        wallFixtureDef.shape = wallShape;
+        wallFixtureDef.density = 1;
+        wall.createFixture(wallFixtureDef);
+        wallShape.dispose();
     }
 
     @Override
@@ -290,7 +349,7 @@ public class SketchRacer extends ApplicationAdapter {
         rightWheel.applyForce(rdirection, rightWheel.getPosition(), true);
 
         //Steering
-        float currentAngle = body.getAngle() - (float)Math.PI / 2;
+        float currentAngle = body.getAngle() - (float)Math.PI / 2f;
         steeringAngle = (float)((targetAngle - currentAngle + Math.PI) % (2 * Math.PI) - Math.PI);
         if(steeringAngle > MAX_STEER_ANGLE) steeringAngle = MAX_STEER_ANGLE;
         else if(steeringAngle < -MAX_STEER_ANGLE) steeringAngle = -MAX_STEER_ANGLE;
@@ -302,8 +361,8 @@ public class SketchRacer extends ApplicationAdapter {
         rightJoint.setMotorSpeed(mspeed * STEER_SPEED);
 
         // Set the sprite's position from the updated physics carBody location
-        sprite.setPosition(body.getPosition().x - sprite.getWidth() / 2,
-                body.getPosition().y - sprite.getHeight() / 2);
+        sprite.setPosition(body.getPosition().x - sprite.getWidth() / 2f,
+                body.getPosition().y - sprite.getHeight() / 2f);
         // Ditto for rotation
         sprite.setRotation((float)Math.toDegrees(body.getAngle()));
 
@@ -336,16 +395,6 @@ public class SketchRacer extends ApplicationAdapter {
         world.dispose();
     }
 
-    public boolean touchDragged(int screenX, int screenY, int pointer) {
-        //System.out.println(screenX + ";" + screenY);
-		/*Vector2 voiture = body.getPosition();
-		Vector2 tap = new Vector2(screenX - Gdx.graphics.getWidth()/2f, screenY - Gdx.graphics.getHeight()/2f);
-		body.applyForceToCenter(tap.x - voiture.x, voiture.y - tap.y, true);
-		System.out.println("Force : "+(tap.x - voiture.x)+";"+(voiture.y - tap.y));
-		return true;*/
-        return false;
-    }
-
     private void killOrthogonalVelocity(Body targetBody) {
         Vector2 localPoint = new Vector2(0,0);
         Vector2 velocity = targetBody.getLinearVelocityFromLocalPoint(localPoint);
@@ -357,36 +406,6 @@ public class SketchRacer extends ApplicationAdapter {
     private Vector2 getRcol2(Body targetBody) {
         float angle = targetBody.getTransform().getRotation();
         return new Vector2((float)Math.sin(angle), -(float)Math.cos(angle));
-    }
-
-    private int lastFinger = -1;
-    // On touch we apply force from the direction of the users touch.
-    // This could result in the object "spinning"
-
-    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-		/*
-		lastFinger = pointer;
-		engineSpeed = HORSEPOWERS;
-		if(screenX < Gdx.graphics.getWidth()/2f) {
-			steeringAngle += MAX_STEER_ANGLE;
-			if(steeringAngle > MAX_STEER_ANGLE) steeringAngle = MAX_STEER_ANGLE;
-		} else {
-			steeringAngle -= MAX_STEER_ANGLE;
-			if(steeringAngle < -MAX_STEER_ANGLE) steeringAngle = -MAX_STEER_ANGLE;
-		}
-		*/
-        return false;
-    }
-
-
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		/*
-		if(pointer == lastFinger) {
-			engineSpeed = 0;
-			steeringAngle = 0;
-		}
-		*/
-        return false;
     }
 
 }
