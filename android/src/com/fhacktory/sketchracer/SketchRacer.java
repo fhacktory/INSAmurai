@@ -74,6 +74,7 @@ public class SketchRacer extends ApplicationAdapter {
 
     private Circuit circuit;
     private int turns;
+    private final int totalTurns;
 
     private List<Vector2> inside, outside;
     private Vector2 start;
@@ -89,11 +90,12 @@ public class SketchRacer extends ApplicationAdapter {
 
     long startMillis;
 
-    private Activity act;
+    private AndroidLauncher act;
 
-    public SketchRacer(Circuit circuit, int turns, Activity act) {
+    public SketchRacer(Circuit circuit, int turns, AndroidLauncher act) {
         this.circuit = circuit;
         this.turns = turns;
+        this.totalTurns = turns;
         this.act = act;
 
         //find the closest point to the beginning
@@ -116,6 +118,8 @@ public class SketchRacer extends ApplicationAdapter {
         lapIndexReverse = indexClosest - 1;
 
         startMillis = System.currentTimeMillis();
+
+        act.setHud1(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
     }
 
     @Override
@@ -166,12 +170,7 @@ public class SketchRacer extends ApplicationAdapter {
             public void touchDragged(InputEvent event, float x, float y, int pointer) {
                 float xp = touchpad.getKnobPercentX();
                 float yp = touchpad.getKnobPercentY();
-                if (xp == 0) {
-                    targetAngle = yp >= 0 ? (float) Math.PI / 2f : -(float) Math.PI / 2f;
-                } else {
-                    targetAngle = (float) Math.atan(yp / xp);
-                    if (xp < 0) targetAngle += (float) Math.PI;
-                }
+                targetAngle = (float)Math.atan2(yp, xp);
             }
 
             @Override
@@ -340,7 +339,7 @@ public class SketchRacer extends ApplicationAdapter {
         }
         wallDef = new BodyDef();
         wallDef.type = BodyDef.BodyType.StaticBody;
-        wallDef.position.set(0,0);
+        wallDef.position.set(0, 0);
         wall = world.createBody(wallDef);
         wallShape = new EdgeShape();
         wallShape.set(this.inside.get(this.inside.size() - 1).x,this.inside.get(this.inside.size() - 1).y,this.inside.get(0).x,this.inside.get(0).y);
@@ -396,8 +395,11 @@ public class SketchRacer extends ApplicationAdapter {
         rightWheel.applyForce(rdirection, rightWheel.getPosition(), true);
 
         //Steering
-        float currentAngle = body.getTransform().getRotation() - (float)Math.PI / 2f;
-        steeringAngle = (float)((targetAngle - currentAngle + Math.PI) % (2 * Math.PI) - Math.PI);
+        float currentAngle = body.getAngle() % ((float) Math.PI * 2) - (float)Math.PI / 2f;
+        steeringAngle = (float)((targetAngle - currentAngle + 3*Math.PI) % (2 * Math.PI) - Math.PI);
+        //trying to correct oscillating problem by taking the existing velocity into account
+        steeringAngle -= body.getAngularVelocity() / 2;
+
         if(steeringAngle > MAX_STEER_ANGLE) steeringAngle = MAX_STEER_ANGLE;
         else if(steeringAngle < -MAX_STEER_ANGLE) steeringAngle = -MAX_STEER_ANGLE;
 
@@ -444,6 +446,8 @@ public class SketchRacer extends ApplicationAdapter {
                 Log.i("SketchRacer", turns+" turns left!");
 
                 if(turns == 0) finishLaps();
+                else
+                    act.setHud1Blink(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
             }
 
             lapIndex++;
@@ -453,13 +457,22 @@ public class SketchRacer extends ApplicationAdapter {
             Log.v("SketchRacer", "Passed reverse checkpoint "+lapIndexReverse+"!");
             if(lapIndexReverse == lapFirstIndex) {
                 turns--;
-                Log.i("SketchRacer", turns+" turns left!");
+                Log.i("SketchRacer", turns + " turns left!");
 
                 if(turns == 0) finishLaps();
+                else
+                    act.setHud1Blink(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
             }
 
             lapIndexReverse--;
             if(lapIndexReverse == -1) lapIndexReverse = inside.size() - 1;
+        }
+
+        if(turns == 0) {
+            act.setHud1("");
+            act.setHud2("");
+        } else {
+            act.setHud2(getRunTime());
         }
     }
 
