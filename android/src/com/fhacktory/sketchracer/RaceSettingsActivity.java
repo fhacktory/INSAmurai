@@ -24,7 +24,7 @@ public class RaceSettingsActivity extends AppCompatActivity {
 
     private CircuitView circuitView;
 
-    private int turns = 3;
+    private int turns = 1;
 
     private View pleaseTouch, go;
 

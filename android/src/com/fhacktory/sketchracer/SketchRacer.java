@@ -445,7 +445,7 @@ public class SketchRacer extends ApplicationAdapter {
         // Check checkpoints
         if(Math.sqrt(Math.pow(inside.get(lapIndex).x - body.getPosition().x, 2)
                 +Math.pow(inside.get(lapIndex).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
-            Log.d("SketchRacer", "Passed checkpoint "+lapIndex+"!");
+            Log.v("SketchRacer", "Passed checkpoint "+lapIndex+"!");
             if(lapIndex == lapFirstIndex) {
                 turns--;
                 Log.i("SketchRacer", turns+" turns left!");
@@ -457,7 +457,7 @@ public class SketchRacer extends ApplicationAdapter {
             if(lapIndex == inside.size()) lapIndex = 0;
         } else if(Math.sqrt(Math.pow(inside.get(lapIndexReverse).x - body.getPosition().x, 2)
                 +Math.pow(inside.get(lapIndexReverse).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
-            Log.d("SketchRacer", "Passed reverse checkpoint "+lapIndexReverse+"!");
+            Log.v("SketchRacer", "Passed reverse checkpoint "+lapIndexReverse+"!");
             if(lapIndexReverse == lapFirstIndex) {
                 turns--;
                 Log.i("SketchRacer", turns+" turns left!");
