@@ -14,7 +14,7 @@ import org.opencv.imgcodecs.Imgcodecs; // imread, imwrite, etc
 
 public class Sketch {
 
-    //static{ System.loadLibrary("opencv_java3"); }
+    static{ System.loadLibrary("opencv_java3"); }
 
     private String path;
 
@@ -24,7 +24,6 @@ public class Sketch {
     }
 
     public List<MatOfPoint> computeContours() {
-        System.loadLibrary("opencv_java3");
 
         Log.d("Sketch", "Now scanning picture: "+this.path);
 
@@ -38,8 +37,7 @@ public class Sketch {
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy  = new Mat();
 
-        Imgproc.Canny(image, image, 10,50
-                , 3, true);
+        Imgproc.Canny(image, image, 10, 50, 3, true);
 
         int dilation_size = 5;
         int erosion_size = 1;
@@ -47,6 +45,7 @@ public class Sketch {
         //Imgproc.erode(image, image, element);
         Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2 * dilation_size + 1, 2 * dilation_size + 1));
         Imgproc.dilate(image, image, element1);
+        if(image.empty()) System.out.println("merde");
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
         Log.d("Sketch", contours.size() + " contours found");

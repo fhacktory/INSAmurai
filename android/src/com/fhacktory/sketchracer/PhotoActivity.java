@@ -261,9 +261,8 @@ public class PhotoActivity extends AppCompatActivity {
 
         Log.d("PhotoActivity", "Now passing "+pts.size()+" points!");
 
-        Intent i = new Intent(this, AndroidLauncher.class);//RaceActivity.class
+        Intent i = new Intent(this, RaceActivity.class);
         i.putParcelableArrayListExtra(RaceActivity.EXTRA_CIRCUIT, pts);
-        //RaceActivity.pts = pts;
 
         startActivity(i);
     }

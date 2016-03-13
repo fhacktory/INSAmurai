@@ -1,6 +1,7 @@
 package com.fhacktory.sketchracer;
 
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -82,5 +83,12 @@ public class RaceActivity extends AppCompatActivity {
                     }
                 })
                 .show();
+    }
+
+
+
+    public void cEstParti(View v) {
+        Intent i = new Intent(this, AndroidLauncher.class);
+        startActivity(i);
     }
 }

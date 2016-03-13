@@ -45,7 +45,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/go"
-            android:id="@+id/go" />
+            android:id="@+id/go"
+            android:onClick="cEstParti" />
     </LinearLayout>
 
     <com.fhacktory.sketchracer.GameView
