@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.SeekBar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -53,7 +54,7 @@ public class SketchRacer extends ApplicationAdapter {
 
     private final static float MAX_STEER_ANGLE = (float) (Math.PI/4);
     private final static float STEER_SPEED = 1.5f;
-    private final static float HORSEPOWERS = 60;
+    public final static float HORSEPOWERS = 60;
 
     private final static Vector2 leftRearWheelPosition = new Vector2(-1.5f,1.9f);
     private final static Vector2 rightRearWheelPosition = new Vector2(1.5f,1.9f);
@@ -103,11 +104,28 @@ public class SketchRacer extends ApplicationAdapter {
 
     private AndroidLauncher act;
 
-    public SketchRacer(Circuit circuit, int turns, AndroidLauncher act) {
+    public SketchRacer(Circuit circuit, int turns, SeekBar accelerator, AndroidLauncher act) {
         this.circuit = circuit;
         this.turns = turns;
         this.totalTurns = turns;
         this.act = act;
+
+        accelerator.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                engineSpeed = progress - 20;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         //find the closest point to the beginning
         int indexClosest = -1;

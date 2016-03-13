@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
@@ -16,6 +17,7 @@ public class AndroidLauncher extends AppCompatActivity implements AndroidFragmen
 	private Circuit circuit;
     private int turns;
 	private TextView hud1, hud2;
+	private SeekBar accelerator;
 
     @Override
 	protected void onCreate (Bundle savedInstanceState)
@@ -29,6 +31,10 @@ public class AndroidLauncher extends AppCompatActivity implements AndroidFragmen
 		turns = getIntent().getIntExtra("turns", 1);
 		hud1 = (TextView) findViewById(R.id.hud1);
 		hud2 = (TextView) findViewById(R.id.hud2);
+		accelerator = (SeekBar) findViewById(R.id.accelerate);
+
+		accelerator.setMax(120);
+		accelerator.setProgress((int)(SketchRacer.HORSEPOWERS) + 20);
 
 		// 6. Finally, replace the AndroidLauncher activity content with the Libgdx Fragment.
 		GameFragment fragment = new GameFragment();
@@ -44,7 +50,7 @@ public class AndroidLauncher extends AppCompatActivity implements AndroidFragmen
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
-			return initializeForView(new SketchRacer(circuit, turns, AndroidLauncher.this));
+			return initializeForView(new SketchRacer(circuit, turns, accelerator, AndroidLauncher.this));
 		}
 	}
 
