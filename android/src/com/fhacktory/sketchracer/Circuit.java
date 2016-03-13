@@ -1,8 +1,10 @@
 package com.fhacktory.sketchracer;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +13,8 @@ public class Circuit {
     private static final int WIDTH = 40;
 
     private List<Point> outside, inside;
+
+    private Point start = null;
 
     private int minX, minY, maxX, maxY;
 
@@ -62,13 +66,43 @@ public class Circuit {
         maxY += 5;
     }
 
+    private double getScale(View parent) {
+        return Math.max((double) (maxX - minX) / parent.getWidth(), (double) (maxY - minY) / parent.getHeight());
+    }
+    private double getScale(Canvas c) {
+        return Math.max((double) (maxX - minX) / c.getWidth(), (double) (maxY - minY) / c.getHeight());
+    }
+
+    public void setStart(Point start, View parent) {
+        this.start = start;
+
+        this.start.x *= getScale(parent);
+        this.start.y *= getScale(parent);
+        this.start.x += minX;
+        this.start.y += minY;
+    }
+
     public void drawOn(Canvas c, Paint paint) {
+        paint.setColor(Color.BLACK);
+
         drawLine(c, paint, inside);
         drawLine(c, paint, outside);
+
+        paint.setColor(Color.RED);
+
+        if(start != null) {
+            Point scaledStart = new Point((int)((start.x-minX)/getScale(c)), (int)((start.y-minY)/getScale(c)));
+
+            int crossSize = 15;
+            c.drawLine(scaledStart.x - crossSize, scaledStart.y - crossSize,
+                    scaledStart.x + crossSize, scaledStart.y + crossSize, paint);
+            c.drawLine(scaledStart.x - crossSize, scaledStart.y + crossSize,
+                    scaledStart.x + crossSize, scaledStart.y - crossSize, paint);
+        }
     }
 
     private void drawLine(Canvas c, Paint paint, List<Point> points) {
-        double scale = Math.max((double) (maxX - minX) / c.getWidth(), (double) (maxY - minY) / c.getHeight());
+        double scale = getScale(c);
 
         float[] pts = new float[points.size() * 4];
 
@@ -83,5 +117,9 @@ public class Circuit {
         }
 
         c.drawLines(pts, paint);
+    }
+
+    public Point getStart() {
+        return start;
     }
 }
