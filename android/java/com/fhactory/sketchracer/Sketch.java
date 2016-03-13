@@ -12,10 +12,6 @@ import java.util.List;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs; // imread, imwrite, etc
 
-
-/**
- * Created by Afkid on 3/12/2016.
- */
 public class Sketch {
 
     static{ System.loadLibrary("opencv_java3"); }
