@@ -100,6 +100,11 @@ public class Circuit implements Parcelable {
     }
 
     public boolean setStart(Point start, View parent) {
+        int decX = parent.getWidth() / 2 - (int)((maxX - minX)/getScale(parent)) / 2;
+        int decY = parent.getHeight() / 2 -(int)((maxY - minY)/getScale(parent)) / 2;
+
+        start.x -= decX;
+        start.y -= decY;
         start.x *= getScale(parent);
         start.y *= getScale(parent);
         start.x += minX;
@@ -121,8 +126,11 @@ public class Circuit implements Parcelable {
 
         paint.setColor(Color.RED);
 
+        int decX = c.getWidth() / 2 - (int)((maxX - minX)/getScale(c)) / 2;
+        int decY = c.getHeight() / 2 -(int)((maxY - minY)/getScale(c)) / 2;
+
         if(start != null) {
-            Point scaledStart = new Point((int)((start.x-minX)/getScale(c)), (int)((start.y-minY)/getScale(c)));
+            Point scaledStart = new Point((int)((start.x-minX)/getScale(c) + decX), (int)((start.y-minY)/getScale(c) + decY));
 
             int crossSize = 15;
             c.drawLine(scaledStart.x - crossSize, scaledStart.y - crossSize,
@@ -137,14 +145,17 @@ public class Circuit implements Parcelable {
 
         float[] pts = new float[points.size() * 4];
 
+        int decX = c.getWidth() / 2 - (int)((maxX - minX)/scale) / 2;
+        int decY = c.getHeight() / 2 -(int)((maxY - minY)/scale) / 2;
+
         for(int i = 0; i < points.size(); i++) {
             Point pt1 = points.get(i);
             Point pt2 = points.get(i+1 == points.size() ? 0 : i+1);
 
-            pts[4*i] = (float)((pt1.x-minX)/scale);
-            pts[4*i+1] = (float)((pt1.y-minY)/scale);
-            pts[4*i+2] = (float)((pt2.x-minX)/scale);
-            pts[4*i+3] = (float)((pt2.y-minY)/scale);
+            pts[4*i] = (float)((pt1.x-minX)/scale + decX);
+            pts[4*i+1] = (float)((pt1.y-minY)/scale + decY);
+            pts[4*i+2] = (float)((pt2.x-minX)/scale + decX);
+            pts[4*i+3] = (float)((pt2.y-minY)/scale + decY);
         }
 
         c.drawLines(pts, paint);

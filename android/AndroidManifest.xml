@@ -22,12 +22,6 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".PhotoActivity"
-            android:label="@string/app_name" 
-            android:screenOrientation="sensorLandscape"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize">
-        </activity>
-        <activity
             android:name=".RaceSettingsActivity"
             android:screenOrientation="sensorLandscape">
             <intent-filter>
