@@ -183,8 +183,8 @@ public class PhotoActivity extends AppCompatActivity {
 
         new Thread() {
             @Override public void run() {
-                Sketch sketch = new Sketch(photoFile.getAbsolutePath());
-                List<MatOfPoint> contours = sketch.computeContours();
+                ContourUtils contourUtils = new ContourUtils(photoFile.getAbsolutePath());
+                List<MatOfPoint> contours = contourUtils.computeContours();
 
                 runOnUiThread(new Runnable() {
                       @Override
@@ -261,9 +261,9 @@ public class PhotoActivity extends AppCompatActivity {
 
         Log.d("PhotoActivity", "Now passing "+pts.size()+" points!");
 
-        Intent i = new Intent(this, RaceActivity.class);
-        i.putParcelableArrayListExtra(RaceActivity.EXTRA_CIRCUIT, pts);
-        //RaceActivity.pts = pts;
+        Intent i = new Intent(this, RaceSettingsActivity.class);
+        i.putParcelableArrayListExtra(RaceSettingsActivity.EXTRA_CIRCUIT, pts);
+        //RaceSettingsActivity.pts = pts;
 
         startActivity(i);
     }

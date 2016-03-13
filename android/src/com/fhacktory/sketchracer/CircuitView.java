@@ -9,12 +9,12 @@ import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.View;
 
-public class GameView extends View {
+public class CircuitView extends View {
     private Circuit circ;
 
     private Paint paint = new Paint();
 
-    public GameView(Context context, AttributeSet attrs) {
+    public CircuitView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         paint.setStrokeWidth(5);

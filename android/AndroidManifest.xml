@@ -32,7 +32,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".RaceActivity"
+            android:name=".RaceSettingsActivity"
             android:screenOrientation="sensorLandscape">
         </activity>
         <activity

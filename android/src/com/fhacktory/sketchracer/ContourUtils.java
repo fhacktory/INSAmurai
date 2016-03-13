@@ -12,20 +12,20 @@ import java.util.List;
 import org.opencv.core.*;
 import org.opencv.imgcodecs.Imgcodecs; // imread, imwrite, etc
 
-public class Sketch {
+public class ContourUtils {
 
     static{ System.loadLibrary("opencv_java3"); }
 
     private String path;
 
-    public Sketch(String path)
+    public ContourUtils(String path)
     {
         this.path = path;
     }
 
     public List<MatOfPoint> computeContours() {
 
-        Log.d("Sketch", "Now scanning picture: "+this.path);
+        Log.d("ContourUtils", "Now scanning picture: "+this.path);
 
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
@@ -48,7 +48,7 @@ public class Sketch {
         if(image.empty()) return contours;
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
-        Log.d("Sketch", contours.size() + " contours found");
+        Log.d("ContourUtils", contours.size() + " contours found");
         return contours;
     }
 }

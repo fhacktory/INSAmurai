@@ -13,9 +13,8 @@ import android.widget.Button;
 import android.widget.NumberPicker;
 
 import java.util.ArrayList;
-import java.util.List;
 
-public class RaceActivity extends AppCompatActivity {
+public class RaceSettingsActivity extends AppCompatActivity {
 
     public static final String EXTRA_CIRCUIT = "circuit";
 
@@ -23,7 +22,7 @@ public class RaceActivity extends AppCompatActivity {
     public static final String SAVE_CIRCUIT = "save_circuit";
 
 
-    private GameView gameView;
+    private CircuitView circuitView;
 
     private int turns = 3;
 
@@ -32,22 +31,22 @@ public class RaceActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_race);
+        setContentView(R.layout.activity_race_settings);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        gameView = (GameView) findViewById(R.id.race_view);
+        circuitView = (CircuitView) findViewById(R.id.race_view);
 
         if(savedInstanceState == null) {
             ArrayList<Point> pts = getIntent().getParcelableArrayListExtra(EXTRA_CIRCUIT);
             Point[] ptsArray = new Point[pts.size()];
             pts.toArray(ptsArray);
 
-            gameView.setCircuit(new Circuit(ptsArray));
+            circuitView.setCircuit(new Circuit(ptsArray));
         } else {
             Circuit circ = savedInstanceState.getParcelable(SAVE_CIRCUIT);
-            gameView.setCircuit(circ);
+            circuitView.setCircuit(circ);
 
             turns = savedInstanceState.getInt(SAVE_TURNS);
             if ((findViewById(R.id.turn_count)) != null) {
@@ -57,16 +56,16 @@ public class RaceActivity extends AppCompatActivity {
 
         pleaseTouch = findViewById(R.id.please_touch);
         go = findViewById(R.id.go);
-        if (go != null && gameView.getCircuit().getStart() == null) {
+        if (go != null && circuitView.getCircuit().getStart() == null) {
             go.setVisibility(View.GONE);
         } else if(pleaseTouch != null) {
             pleaseTouch.setVisibility(View.GONE);
         }
 
-        gameView.setOnTouchListener(new View.OnTouchListener() {
+        circuitView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                if(gameView.setStart(new Point((int)event.getX(), (int)event.getY()))) {
+                if(circuitView.setStart(new Point((int)event.getX(), (int)event.getY()))) {
                     pleaseTouch.setVisibility(View.GONE);
                     go.setVisibility(View.VISIBLE);
                 }
@@ -78,7 +77,7 @@ public class RaceActivity extends AppCompatActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        outState.putParcelable(SAVE_CIRCUIT, gameView.getCircuit());
+        outState.putParcelable(SAVE_CIRCUIT, circuitView.getCircuit());
         outState.putInt(SAVE_TURNS, turns);
     }
 
@@ -111,7 +110,7 @@ public class RaceActivity extends AppCompatActivity {
 
     public void cEstParti(View v) {
         Intent i = new Intent(this, AndroidLauncher.class);
-        i.putExtra("circuit", gameView.getCircuit());
+        i.putExtra("circuit", circuitView.getCircuit());
         i.putExtra("turns", turns);
         startActivity(i);
     }

@@ -24,7 +24,7 @@ public class Sketch {
     }
 
     public List<MatOfPoint> computeContours() {
-        Log.d("Sketch", "Now scanning picture: "+this.path);
+        Log.d("ContourUtils", "Now scanning picture: "+this.path);
 
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
@@ -47,7 +47,7 @@ public class Sketch {
         Imgproc.dilate(image, image, element1);
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
-        Log.d("Sketch", contours.size() + " contours found");
+        Log.d("ContourUtils", contours.size() + " contours found");
         return contours;
     }
 }

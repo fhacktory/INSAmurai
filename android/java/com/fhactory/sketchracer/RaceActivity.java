@@ -6,28 +6,27 @@ import android.os.Bundle;
 import android.view.WindowManager;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class RaceActivity extends AppCompatActivity {
 
     public static final String EXTRA_CIRCUIT = "circuit";
 
-    private GameView gameView;
+    private CircuitView circuitView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_race);
+        setContentView(R.layout.activity_race_settings);
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        gameView = (GameView) findViewById(R.id.race_view);
+        circuitView = (CircuitView) findViewById(R.id.race_view);
 
         ArrayList<Point> pts = getIntent().getParcelableArrayListExtra(EXTRA_CIRCUIT);
         Point[] ptsArray = new Point[pts.size()];
         pts.toArray(ptsArray);
 
-        gameView.setCircuit(new Circuit(ptsArray));
+        circuitView.setCircuit(new Circuit(ptsArray));
     }
 }
