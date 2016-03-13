@@ -19,6 +19,10 @@ public class RaceActivity extends AppCompatActivity {
 
     public static final String EXTRA_CIRCUIT = "circuit";
 
+    public static final String SAVE_TURNS = "save_turns";
+    public static final String SAVE_CIRCUIT = "save_circuit";
+
+
     private GameView gameView;
 
     private int turns = 3;
@@ -35,16 +39,28 @@ public class RaceActivity extends AppCompatActivity {
 
         gameView = (GameView) findViewById(R.id.race_view);
 
-        ArrayList<Point> pts = getIntent().getParcelableArrayListExtra(EXTRA_CIRCUIT);
-        Point[] ptsArray = new Point[pts.size()];
-        pts.toArray(ptsArray);
+        if(savedInstanceState == null) {
+            ArrayList<Point> pts = getIntent().getParcelableArrayListExtra(EXTRA_CIRCUIT);
+            Point[] ptsArray = new Point[pts.size()];
+            pts.toArray(ptsArray);
 
-        gameView.setCircuit(new Circuit(ptsArray));
+            gameView.setCircuit(new Circuit(ptsArray));
+        } else {
+            Circuit circ = savedInstanceState.getParcelable(SAVE_CIRCUIT);
+            gameView.setCircuit(circ);
+
+            turns = savedInstanceState.getInt(SAVE_TURNS);
+            if ((findViewById(R.id.turn_count)) != null) {
+                ((Button) findViewById(R.id.turn_count)).setText(String.valueOf(turns));
+            }
+        }
 
         pleaseTouch = findViewById(R.id.please_touch);
         go = findViewById(R.id.go);
-        if (go != null) {
+        if (go != null && gameView.getCircuit().getStart() == null) {
             go.setVisibility(View.GONE);
+        } else if(pleaseTouch != null) {
+            pleaseTouch.setVisibility(View.GONE);
         }
 
         gameView.setOnTouchListener(new View.OnTouchListener() {
@@ -58,6 +74,12 @@ public class RaceActivity extends AppCompatActivity {
                 return true;
             }
         });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putParcelable(SAVE_CIRCUIT, gameView.getCircuit());
+        outState.putInt(SAVE_TURNS, turns);
     }
 
     public void changeTurns(View v) {
