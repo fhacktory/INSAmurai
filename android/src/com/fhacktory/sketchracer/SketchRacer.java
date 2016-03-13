@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
+import android.widget.SeekBar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -53,7 +54,7 @@ public class SketchRacer extends ApplicationAdapter {
 
     private final static float MAX_STEER_ANGLE = (float) (Math.PI/4);
     private final static float STEER_SPEED = 1.5f;
-    private final static float HORSEPOWERS = 60;
+    public final static float HORSEPOWERS = 60;
 
     private final static Vector2 leftRearWheelPosition = new Vector2(-1.5f,1.9f);
     private final static Vector2 rightRearWheelPosition = new Vector2(1.5f,1.9f);
@@ -103,11 +104,28 @@ public class SketchRacer extends ApplicationAdapter {
 
     private AndroidLauncher act;
 
-    public SketchRacer(Circuit circuit, int turns, AndroidLauncher act) {
+    public SketchRacer(Circuit circuit, int turns, SeekBar accelerator, AndroidLauncher act) {
         this.circuit = circuit;
         this.turns = turns;
         this.totalTurns = turns;
         this.act = act;
+
+        accelerator.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                engineSpeed = progress - 20;
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
 
         //find the closest point to the beginning
         int indexClosest = -1;
@@ -306,8 +324,15 @@ public class SketchRacer extends ApplicationAdapter {
         world.createJoint(leftRearJointDef);
         world.createJoint(rightRearJointDef);
 
-        body.setTransform(body.getPosition(), startingDir.angle());
-        targetAngle = startingDir.angle();
+        float angle = (startingDir.angle()) % (2f*(float)Math.PI);
+
+        body.setTransform(body.getPosition(), angle);
+        leftWheel.setTransform(leftWheel.getPosition(), angle);
+        rightWheel.setTransform(rightWheel.getPosition(), angle);
+        leftRearWheel.setTransform(leftRearWheel.getPosition(), angle);
+        rightRearWheel.setTransform(rightRearWheel.getPosition(), angle);
+
+        targetAngle = body.getAngle();
     }
 
     private void createCircuit() {
@@ -323,20 +348,20 @@ public class SketchRacer extends ApplicationAdapter {
         int midY = (circuit.getMaxY() - circuit.getMinY())/2;
         int i = 0;
         for(Point p : inside) {
-            this.inside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+            this.inside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
             this.inPolygon[i] = (p.x - midX)/5;
-            this.inPolygon[i+1] = (p.y - midY)/5;
+            this.inPolygon[i+1] = -(p.y - midY)/5;
             i += 2;
         }
         i = 0;
         for(Point p : outside) {
-            this.outside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+            this.outside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
             this.outPolygon[i] = (p.x - midX)/5;
-            this.outPolygon[i+1] = (p.y - midY)/5;
+            this.outPolygon[i+1] = -(p.y - midY)/5;
             i += 2;
         }
         this.start.x = (this.start.x - midX)/5;
-        this.start.y = (this.start.y - midY)/5;
+        this.start.y = -(this.start.y - midY)/5;
         startingPos = new Vector2(start.x,start.y);
         // build walls
         BodyDef wallDef;
@@ -412,7 +437,7 @@ public class SketchRacer extends ApplicationAdapter {
         startLine.createFixture(startLineFixtureDef);
         startLineShape.dispose();
 
-        startingDir = norm.scl(-1f/2f);
+        startingDir = norm.scl(1/2f);
     }
 
     @Override
