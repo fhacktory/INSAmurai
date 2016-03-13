@@ -82,13 +82,10 @@ public class SketchRacer extends ApplicationAdapter {
 
     private final int lapFirstIndex;
 
-    private float[] outPolygon, inPolygon;
-
-
     Vector2 startingPos;
     Vector2 startingDir;
 
-    long startMillis;
+    long startMillis = 0;
 
     private AndroidLauncher act;
 
@@ -102,6 +99,9 @@ public class SketchRacer extends ApplicationAdapter {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 engineSpeed = progress - 20;
+                if(startMillis == 0) {
+                    startMillis = System.currentTimeMillis();
+                }
             }
 
             @Override
@@ -133,8 +133,6 @@ public class SketchRacer extends ApplicationAdapter {
         lapFirstIndex = indexClosest;
         lapIndex = indexClosest + 1;
         lapIndexReverse = indexClosest - 1;
-
-        startMillis = System.currentTimeMillis();
 
         act.setHud1(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
     }
@@ -321,8 +319,8 @@ public class SketchRacer extends ApplicationAdapter {
         rightRearWheel.setTransform(rightRearWheel.getPosition(), angle);
 
         targetAngle = angle - (float)Math.PI/2f;
-        System.out.println(body.getAngle());
-        System.out.println(angle);
+        //System.out.println(body.getAngle());
+        //System.out.println(angle);
     }
 
     private void createCircuit() {
@@ -332,23 +330,13 @@ public class SketchRacer extends ApplicationAdapter {
         this.inside = new ArrayList<Vector2>(inside.size());
         this.outside = new ArrayList<Vector2>(outside.size());
         this.start = new Vector2(circuit.getStart().x, circuit.getStart().y);
-        this.inPolygon = new float[2*inside.size()];
-        this.outPolygon = new float[2*outside.size()];
         int midX = (circuit.getMaxX() - circuit.getMinX())/2;
         int midY = (circuit.getMaxY() - circuit.getMinY())/2;
-        int i = 0;
         for(Point p : inside) {
             this.inside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
-            this.inPolygon[i] = (p.x - midX)/5;
-            this.inPolygon[i+1] = -(p.y - midY)/5;
-            i += 2;
         }
-        i = 0;
         for(Point p : outside) {
             this.outside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
-            this.outPolygon[i] = (p.x - midX)/5;
-            this.outPolygon[i+1] = -(p.y - midY)/5;
-            i += 2;
         }
         this.start.x = (this.start.x - midX)/5;
         this.start.y = -(this.start.y - midY)/5;
@@ -358,7 +346,7 @@ public class SketchRacer extends ApplicationAdapter {
         Body wall;
         EdgeShape wallShape;
         FixtureDef wallFixtureDef;
-        for(i = 0; i < this.inside.size() - 1; i++) {
+        for(int i = 0; i < this.inside.size() - 1; i++) {
             wallDef = new BodyDef();
             wallDef.type = BodyDef.BodyType.StaticBody;
             wallDef.position.set(0,0);
@@ -382,7 +370,7 @@ public class SketchRacer extends ApplicationAdapter {
         wallFixtureDef.density = 1;
         wall.createFixture(wallFixtureDef);
         wallShape.dispose();
-        for(i = 0; i < this.outside.size() - 1; i++) {
+        for(int i = 0; i < this.outside.size() - 1; i++) {
             wallDef = new BodyDef();
             wallDef.type = BodyDef.BodyType.StaticBody;
             wallDef.position.set(0,0);
@@ -427,6 +415,7 @@ public class SketchRacer extends ApplicationAdapter {
         startLine.createFixture(startLineFixtureDef);
         startLineShape.dispose();
 
+        startingPos = vertices[0].cpy().add(vertices[0].cpy().sub(vertices[1]).scl(-.5f));
         startingDir = norm;
     }
 
@@ -534,8 +523,10 @@ public class SketchRacer extends ApplicationAdapter {
     private String getRunTime() {
         DecimalFormat two = new DecimalFormat("00");
         DecimalFormat three = new DecimalFormat("000");
-
-        long diffMillis = System.currentTimeMillis() - startMillis;
+        long diffMillis = 0;
+        if(startMillis != 0) {
+            diffMillis = System.currentTimeMillis() - startMillis;
+        }
         long mins = diffMillis / 60000;
         long secs = diffMillis / 1000 - mins*60;
         long millis = diffMillis % 1000;
