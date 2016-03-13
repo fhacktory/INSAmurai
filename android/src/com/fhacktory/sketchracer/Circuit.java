@@ -14,7 +14,9 @@ import java.util.List;
 public class Circuit implements Parcelable {
     private static final int WIDTH = 40;
 
-    private List<Point> outside, inside;
+    private ArrayList<Point> outside, inside;
+
+    public final static double EPS = 1e-10;
 
     private Point start = null;
 
@@ -162,4 +164,44 @@ public class Circuit implements Parcelable {
         dest.writeInt(maxX);
         dest.writeInt(maxY);
     }
+
+
+
+    public boolean PointInsideCircuit(Point x){
+        if(PointInPolygon(outside,x) || PointOnPolygon(outside,x) && !(PointInPolygon(inside,x)))
+            return true;
+        return false;
+    }
+
+    public boolean PointInPolygon(ArrayList<Point> p, Point q){
+        boolean c = false;
+        for(int i=0;i<p.size();++i){
+            int j = (i+1)%p.size();
+            if ((p.get(i).y <= q.y && q.y < p.get(j).y ||
+                    p.get(j).y <= q.y && q.y < p.get(i).y) &&
+                    q.x < p.get(i).x + (p.get(j).x - p.get(i).x) * (q.y - p.get(i).y) / (p.get(j).y - p.get(i).y))
+                c = !c;
+        }
+        return c;
+    }
+
+    public boolean PointOnPolygon(ArrayList<Point> p, Point q){
+        for(int i=0;i<p.size();++i){
+            if(dist2(ProjectPointSegment(p.get(i),p.get((i+1)%p.size()),q),q)<EPS)
+                return true;
+        }
+        return false;
+    }
+
+    Point ProjectPointSegment(Point a, Point b, Point c){
+        double r = dot(b,b,a);
+        if(Math.abs(r)<EPS) return a;
+        r = dot(c,b,a)/r;
+        if(r<0) return a;
+        if(r>1) return b;
+        return new Point((int)(a.x+(b.x-a.x)*r),(int)(a.y+(b.y-a.y)*r));
+    }
+
+    public double dot(Point p, Point q, Point a){ return (p.x-a.x)*(q.x-a.x)+(p.y-a.y)*(q.y-a.y);}
+    public double dist2(Point p, Point q)   { return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y); }
 }
