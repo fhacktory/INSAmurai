@@ -1,6 +1,11 @@
 package com.fhacktory.sketchracer;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Point;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -33,6 +38,7 @@ import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.EmptyStackException;
 import java.util.List;
@@ -77,11 +83,42 @@ public class SketchRacer extends ApplicationAdapter {
     private List<Vector2> inside, outside;
     private Vector2 start;
 
+    private int lapIndex = 0;
+    private int lapIndexReverse = 0;
+
+    private final int lapFirstIndex;
+
     Vector2 startingPos;
 
-    public SketchRacer(Circuit circuit, int turns) {
+    long startMillis;
+
+    private Activity act;
+
+    public SketchRacer(Circuit circuit, int turns, Activity act) {
         this.circuit = circuit;
         this.turns = turns;
+        this.act = act;
+
+        //find the closest point to the beginning
+        int indexClosest = -1;
+        double distanceClosest = Double.MAX_VALUE;
+        List<Point> inner = circuit.getInside();
+        for(int i = 0; i < inner.size(); i++) {
+            if(Math.sqrt(Math.pow(circuit.getStart().x - inner.get(i).x, 2)
+                        +Math.pow(circuit.getStart().y - inner.get(i).y, 2)) < distanceClosest) {
+                distanceClosest = Math.sqrt(Math.pow(circuit.getStart().x - inner.get(i).x, 2)
+                        +Math.pow(circuit.getStart().y - inner.get(i).y, 2));
+
+                indexClosest = i;
+            }
+        }
+
+        Log.d("SketchRacer", "indexClosest is "+indexClosest+", distance is "+distanceClosest);
+        lapFirstIndex = indexClosest;
+        lapIndex = indexClosest + 1;
+        lapIndexReverse = indexClosest - 1;
+
+        startMillis = System.currentTimeMillis();
     }
 
     @Override
@@ -113,12 +150,13 @@ public class SketchRacer extends ApplicationAdapter {
         stage.addActor(touchpad);
 
         // Add timer label
+        /*
         Skin timerSkin = new Skin();
         Label.LabelStyle timerStyle = new Label.LabelStyle();
         timerStyle.font = timerSkin.getFont("data/default.fnt");
         Label timer = new Label("Hello", timerStyle);
         timer.setBounds(Gdx.graphics.getWidth() - 100, 10, Gdx.graphics.getWidth() - 10, 50);
-
+*/
         createCircuit();
 
         createCar();
@@ -330,7 +368,7 @@ public class SketchRacer extends ApplicationAdapter {
         }
         wallDef = new BodyDef();
         wallDef.type = BodyDef.BodyType.StaticBody;
-        wallDef.position.set(0,0);
+        wallDef.position.set(0, 0);
         wall = world.createBody(wallDef);
         wallShape = new EdgeShape();
         wallShape.set(newOutside.get(newOutside.size() - 1).x,newOutside.get(newOutside.size() - 1).y,newOutside.get(0).x,newOutside.get(0).y);
@@ -403,6 +441,64 @@ public class SketchRacer extends ApplicationAdapter {
         // Now render the physics world using our scaled down matrix
         // Note, this is strictly optional and is, as the name suggests, just for debugging purposes
         debugRenderer.render(world, debugMatrix);
+
+        // Check checkpoints
+        if(Math.sqrt(Math.pow(inside.get(lapIndex).x - body.getPosition().x, 2)
+                +Math.pow(inside.get(lapIndex).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
+            Log.d("SketchRacer", "Passed checkpoint "+lapIndex+"!");
+            if(lapIndex == lapFirstIndex) {
+                turns--;
+                Log.i("SketchRacer", turns+" turns left!");
+
+                if(turns == 0) finishLaps();
+            }
+
+            lapIndex++;
+            if(lapIndex == inside.size()) lapIndex = 0;
+        } else if(Math.sqrt(Math.pow(inside.get(lapIndexReverse).x - body.getPosition().x, 2)
+                +Math.pow(inside.get(lapIndexReverse).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
+            Log.d("SketchRacer", "Passed reverse checkpoint "+lapIndexReverse+"!");
+            if(lapIndexReverse == lapFirstIndex) {
+                turns--;
+                Log.i("SketchRacer", turns+" turns left!");
+
+                if(turns == 0) finishLaps();
+            }
+
+            lapIndexReverse--;
+            if(lapIndexReverse == -1) lapIndexReverse = inside.size() - 1;
+        }
+    }
+
+    private String getRunTime() {
+        DecimalFormat two = new DecimalFormat("00");
+        DecimalFormat three = new DecimalFormat("000");
+
+        long diffMillis = System.currentTimeMillis() - startMillis;
+        long mins = diffMillis / 60000;
+        long secs = diffMillis / 1000 - mins*60;
+        long millis = diffMillis % 1000;
+
+        return two.format(mins)+":"+two.format(secs)+"."+three.format(millis);
+    }
+
+    private void finishLaps() {
+        act.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                new AlertDialog.Builder(act)
+                        .setTitle(act.getString(R.string.race_end))
+                        .setMessage(act.getString(R.string.race_result)+getRunTime())
+                        .setPositiveButton(act.getString(R.string.ok), new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                act.finish();
+                            }
+                        })
+                        .setCancelable(false)
+                        .show();
+            }
+        });
     }
 
     @Override

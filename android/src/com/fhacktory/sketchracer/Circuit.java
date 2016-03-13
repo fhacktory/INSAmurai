@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Circuit implements Parcelable {
-    private static final int WIDTH = 40;
+    public static final int WIDTH = 40;
 
     private ArrayList<Point> outside, inside;
 

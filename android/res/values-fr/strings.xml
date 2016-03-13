@@ -18,4 +18,6 @@
     <string name="turn_count">Nombre de tours :</string>
     <string name="go">C\'est parti !</string>
     <string name="touch_start">Touchez la piste pour choisir un point de départ.</string>
+    <string name="race_end">Fin de la course</string>
+    <string name="race_result">"La course est terminée ! Votre temps est de "</string>
 </resources>

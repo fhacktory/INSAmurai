@@ -36,7 +36,7 @@ public class AndroidLauncher extends FragmentActivity implements AndroidFragment
 		@Override
 		public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
 		{
-			return initializeForView(new SketchRacer(circuit, turns));
+			return initializeForView(new SketchRacer(circuit, turns, AndroidLauncher.this));
 		}
 	}
 

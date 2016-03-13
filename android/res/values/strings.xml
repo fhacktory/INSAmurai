@@ -18,4 +18,6 @@
     <string name="turn_count">Turn count:</string>
     <string name="go">Start!</string>
     <string name="touch_start">Touch the track to choose a starting point.</string>
+    <string name="race_end">Race ended</string>
+    <string name="race_result">"The race is over. Your time is: "</string>
 </resources>
