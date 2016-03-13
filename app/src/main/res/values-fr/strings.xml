@@ -15,4 +15,7 @@
     <string name="cancel">Annuler</string>
     <string name="unsupported">Source non prise en charge. Merci de choisir une autre source d\'images.</string>
     <string name="select_picture">Sélectionner un circuit</string>
+    <string name="turn_count">Nombre de tours :</string>
+    <string name="go">C\'est parti !</string>
+    <string name="touch_start">Touchez la piste pour choisir un point de départ.</string>
 </resources>
