@@ -15,12 +15,20 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom">
 
+        <ImageButton
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/imageButton"
+            android:src="@drawable/ic_back"
+            android:onClick="retry" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/turn_count"
             android:id="@+id/textView"
-            android:layout_marginRight="5dp" />
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="20dp" />
 
         <Button
             android:layout_width="50dp"
@@ -47,6 +55,7 @@
             android:text="@string/go"
             android:id="@+id/go"
             android:onClick="cEstParti" />
+
     </LinearLayout>
 
     <com.fhacktory.sketchracer.CircuitView

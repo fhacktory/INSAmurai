@@ -7,8 +7,8 @@
     <string name="error">Erreur</string>
     <string name="no_contour">Je ne trouve pas de circuit sur cette photo.</string>
     <string name="ok">OK</string>
-    <string name="contour_selecting">Création du circuit&#8230;</string>
-    <string name="search_contour">On y est presque&#8230;</string>
+    <string name="contour_selecting">On y est presque&#8230;</string>
+    <string name="search_contour">Création du circuit&#8230;</string>
     <string name="exit">Quitter</string>
     <string name="cancel">Annuler</string>
     <string name="unsupported">Désolé, je ne sais pas utiliser cette appli.</string>
