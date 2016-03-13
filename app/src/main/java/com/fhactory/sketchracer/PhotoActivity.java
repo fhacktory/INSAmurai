@@ -29,6 +29,8 @@ import java.util.List;
 
 public class PhotoActivity extends AppCompatActivity {
 
+    private static final String SAVE_POINTS = "save_points";
+
     private DialogInterface.OnClickListener finish = new DialogInterface.OnClickListener() {
         @Override
         public void onClick(DialogInterface dialog, int which) {
@@ -58,8 +60,21 @@ public class PhotoActivity extends AppCompatActivity {
 
         contourView = (ContourView) findViewById(R.id.track_contour_view);
 
-        if(savedInstanceState == null) {
+        if(savedInstanceState == null || savedInstanceState.getParcelableArrayList(SAVE_POINTS) == null) {
             takePhoto();
+        } else {
+            Log.d("PhotoActivity", "Restoring instance state!");
+            List<Point> savedPoints = savedInstanceState.getParcelableArrayList(SAVE_POINTS);
+            contourView.setPoints(savedPoints);
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        Log.d("PhotoActivity", "Saving instance state!");
+
+        if(contourView.hasPoints()) {
+            outState.putParcelableArrayList(SAVE_POINTS, contourView.getPoints());
         }
     }
 
@@ -189,7 +204,7 @@ public class PhotoActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            contourView.setPoints(finalBiggest);
+                            contourView.setMatOfPoints(finalBiggest);
                             pd.dismiss();
                             cleanTempDir(PhotoActivity.this);
                         }
@@ -244,12 +259,6 @@ public class PhotoActivity extends AppCompatActivity {
     public void use(View v) {
         ArrayList<Point> pts = contourView.getPoints();
 
-        //keeping only a tiny part of the points
-        for(int i = 0; i < pts.size(); i++) {
-            for(int l = 0; l < 30; l++) {
-                if(i < pts.size()) pts.remove(i);
-            }
-        }
         Log.d("PhotoActivity", "Now passing "+pts.size()+" points!");
 
         Intent i = new Intent(this, RaceActivity.class);

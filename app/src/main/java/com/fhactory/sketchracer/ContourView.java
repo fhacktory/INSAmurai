@@ -3,16 +3,17 @@ package com.fhactory.sketchracer;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.util.AttributeSet;
 import android.view.View;
 
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.Point;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class ContourView extends View {
-    private MatOfPoint toDisplay = null;
+    private List<Point> toDisplay = null;
     private Paint paint = new Paint();
     int minX, minY, maxX, maxY;
 
@@ -20,29 +21,45 @@ public class ContourView extends View {
         super(context, attrs);
     }
 
-    public void setPoints(MatOfPoint pointsToDraw) {
-        //take the biggest MatOfPoint
-        toDisplay  = pointsToDraw;
+    public void setPoints(List<Point> list) {
+        toDisplay = list;
 
+        updateMinMax();
+        invalidate();
+    }
+
+    public void setMatOfPoints(MatOfPoint pointsToDraw) {
+        //take the biggest MatOfPoint
+        toDisplay = new ArrayList<>();
+        org.opencv.core.Point[] pts = pointsToDraw.toArray();
+
+        //keeping only a tiny part of the points
+        for(int i = 0; i < pts.length; i += 30) {
+            toDisplay.add(new Point((int)pts[i].x, (int)pts[i].y));
+        }
+
+        updateMinMax();
+        invalidate();
+    }
+
+    private void updateMinMax() {
         minX = Integer.MAX_VALUE;
         minY = Integer.MAX_VALUE;
         maxX = 0;
         maxY = 0;
 
-        for(Point p : toDisplay.toArray()) {
+        for(Point p : toDisplay) {
             minX = Math.min(minX, (int) p.x);
             minY = Math.min(minY, (int) p.y);
 
             maxX = Math.max(maxX, (int)p.x);
             maxY = Math.max(maxY, (int)p.y);
         }
-        
+
         minX -= 5;
         minY -= 5;
         maxX += 5;
         maxY += 5;
-
-        invalidate();
     }
 
     @Override
@@ -53,12 +70,11 @@ public class ContourView extends View {
 
         System.out.println("Contour has size "+toDisplay.size());
 
-        Point[] points = toDisplay.toArray();
 
-        for(int i = 0; i < points.length; i++) {
-            int j = (i+1)%points.length;
-            c.drawLine((float) ((points[i].x - minX) / scale), (float) ((points[i].y - minY) / scale),
-                       (float) ((points[j].x - minX) / scale), (float) ((points[j].y - minY) / scale), paint);
+        for(int i = 0; i < toDisplay.size(); i++) {
+            int j = (i+1)%toDisplay.size();
+            c.drawLine((float) ((toDisplay.get(i).x - minX) / scale), (float) ((toDisplay.get(i).y - minY) / scale),
+                       (float) ((toDisplay.get(j).x - minX) / scale), (float) ((toDisplay.get(j).y - minY) / scale), paint);
         }
     }
 
@@ -73,8 +89,7 @@ public class ContourView extends View {
 
         double scale = Math.max((double) (maxX - minX) / 1000, (double) (maxY - minY) / 1000);
 
-        Point[] points = toDisplay.toArray();
-        for (Point point : points) {
+        for (Point point : toDisplay) {
             pts.add(new android.graphics.Point((int) ((point.x - minX) / scale), (int) ((point.y - minY) / scale)));
         }
 
