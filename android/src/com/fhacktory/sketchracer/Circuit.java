@@ -174,7 +174,7 @@ public class Circuit implements Parcelable {
 
 
     public boolean PointInsideCircuit(Point x){
-        if((PointInPolygon(outside,x) || PointOnPolygon(outside,x)) && !(PointInPolygon(inside,x)))
+        if(PointInPolygon(outside,x) && !PointOnPolygon(inside,x) && !( PointInPolygon(inside,x)))
             return true;
         return false;
     }
