@@ -26,6 +26,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class PhotoActivity extends AppCompatActivity {
 
@@ -183,6 +184,14 @@ public class PhotoActivity extends AppCompatActivity {
 
         new Thread() {
             @Override public void run() {
+                while(photoFile.length() == 0) {
+                    Log.d("PhotoActivity","Waiting for file...");
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 ContourUtils contourUtils = new ContourUtils(photoFile.getAbsolutePath());
                 List<MatOfPoint> contours = contourUtils.computeContours();
 

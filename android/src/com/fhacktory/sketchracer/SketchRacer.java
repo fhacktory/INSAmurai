@@ -3,6 +3,7 @@ package com.fhacktory.sketchracer;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -11,10 +12,16 @@ import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.PolygonRegion;
+import com.badlogic.gdx.graphics.g2d.PolygonSprite;
+import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.EarClippingTriangulator;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -33,6 +40,8 @@ import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Touchpad;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
+import com.badlogic.gdx.utils.FloatArray;
+import com.badlogic.gdx.utils.ShortArray;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import java.text.DecimalFormat;
@@ -86,7 +95,9 @@ public class SketchRacer extends ApplicationAdapter {
 
     private float[] outPolygon, inPolygon;
 
+
     Vector2 startingPos;
+    Vector2 startingDir;
 
     long startMillis;
 
@@ -228,6 +239,7 @@ public class SketchRacer extends ApplicationAdapter {
         boxFixture.density = 1;
         boxFixture.shape = boxDef;
         boxFixture.restitution = 1f;
+        boxFixture.filter.groupIndex = -8;
         body.createFixture(boxFixture);
 
         // Left wheel shape
@@ -236,6 +248,7 @@ public class SketchRacer extends ApplicationAdapter {
         FixtureDef leftWheelFixture = new FixtureDef();
         leftWheelFixture.density = 1;
         leftWheelFixture.shape = leftWheelShapeDef;
+        leftWheelFixture.filter.groupIndex = -8;
         leftWheel.createFixture(leftWheelFixture);
 
         // Right wheel shape
@@ -244,6 +257,7 @@ public class SketchRacer extends ApplicationAdapter {
         FixtureDef rightWheelFixture = new FixtureDef();
         rightWheelFixture.density = 1;
         rightWheelFixture.shape = rightWheelShapeDef;
+        rightWheelFixture.filter.groupIndex = -8;
         rightWheel.createFixture(rightWheelFixture);
 
         // Left rear wheel shape
@@ -252,6 +266,7 @@ public class SketchRacer extends ApplicationAdapter {
         FixtureDef leftRearWheelFixture = new FixtureDef();
         leftRearWheelFixture.density = 1;
         leftRearWheelFixture.shape = leftRearWheelShapeDef;
+        leftRearWheelFixture.filter.groupIndex = -8;
         leftRearWheel.createFixture(leftRearWheelFixture);
 
         // Right rear wheel shape
@@ -260,6 +275,7 @@ public class SketchRacer extends ApplicationAdapter {
         FixtureDef rightRearWheelFixture = new FixtureDef();
         rightRearWheelFixture.density = 1;
         rightRearWheelFixture.shape = rightRearWheelShapeDef;
+        rightRearWheelFixture.filter.groupIndex = -8;
         rightRearWheel.createFixture(rightRearWheelFixture);
 
         RevoluteJointDef leftJointDef = new RevoluteJointDef();
@@ -289,6 +305,9 @@ public class SketchRacer extends ApplicationAdapter {
 
         world.createJoint(leftRearJointDef);
         world.createJoint(rightRearJointDef);
+
+        body.setTransform(body.getPosition(), startingDir.angle());
+        targetAngle = startingDir.angle();
     }
 
     private void createCircuit() {
@@ -372,6 +391,28 @@ public class SketchRacer extends ApplicationAdapter {
         wallFixtureDef.density = 1;
         wall.createFixture(wallFixtureDef);
         wallShape.dispose();
+
+        BodyDef startLineDef = new BodyDef();
+        startLineDef.type = BodyDef.BodyType.StaticBody;
+        startLineDef.position.set(0,0);
+        Body startLine = world.createBody(startLineDef);
+        PolygonShape startLineShape = new PolygonShape();
+        Vector2[] vertices = new Vector2[4];
+        vertices[0] = this.inside.get(lapFirstIndex);
+        vertices[1] = this.outside.get(lapFirstIndex);
+        Vector2 norm = new Vector2(-vertices[0].y + vertices[1].y,vertices[0].x - vertices[1].x);
+        norm.scl(2f/norm.len());
+        vertices[2] = vertices[0].cpy().add(norm);
+        vertices[3] = vertices[1].cpy().add(norm);
+        startLineShape.set(vertices);
+        FixtureDef startLineFixtureDef = new FixtureDef();
+        startLineFixtureDef.shape = startLineShape;
+        startLineFixtureDef.density = 0;
+        startLineFixtureDef.filter.groupIndex = -8;
+        startLine.createFixture(startLineFixtureDef);
+        startLineShape.dispose();
+
+        startingDir = norm.scl(-1f/2f);
     }
 
     @Override
@@ -413,7 +454,7 @@ public class SketchRacer extends ApplicationAdapter {
         sprite.setPosition(body.getPosition().x - sprite.getWidth() / 2f,
                 body.getPosition().y - sprite.getHeight() / 2f);
         // Ditto for rotation
-        sprite.setRotation((float)Math.toDegrees(body.getAngle()));
+        sprite.setRotation((float) Math.toDegrees(body.getAngle()));
 
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -424,7 +465,6 @@ public class SketchRacer extends ApplicationAdapter {
         debugMatrix = batch.getProjectionMatrix().cpy();
 
         batch.begin();
-
         batch.draw(sprite, sprite.getX(), sprite.getY(), sprite.getWidth() / 2f,
                 sprite.getHeight() / 2f,
                 sprite.getWidth(), sprite.getHeight(), sprite.getScaleX(), sprite.

@@ -25,7 +25,7 @@ public class ContourUtils {
 
     public List<MatOfPoint> computeContours() {
 
-        Log.d("ContourUtils", "Now scanning picture: "+this.path);
+        Log.d("ContourUtils", "Now scanning picture: " + this.path);
 
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
@@ -36,16 +36,22 @@ public class ContourUtils {
 
         List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
         Mat hierarchy  = new Mat();
-
-        Imgproc.Canny(image, image, 10, 50, 3, true);
-
+        Mat res = image.clone();
+        int lowThreshold = 10, highThreshold = 50;
+        do {
+            Imgproc.Canny(image, res, lowThreshold, highThreshold, 3, true);
+            lowThreshold--;
+            highThreshold+=5;
+        }
+        while(res.empty() && lowThreshold > 0 && highThreshold > 0);
+        if(res.empty()) return contours;
+        image = res;
         int dilation_size = 5;
         int erosion_size = 1;
-        Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*erosion_size + 1, 2*erosion_size+1));
+        //Mat element = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new  Size(2*erosion_size + 1, 2*erosion_size+1));
         //Imgproc.erode(image, image, element);
         Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2 * dilation_size + 1, 2 * dilation_size + 1));
         Imgproc.dilate(image, image, element1);
-        if(image.empty()) return contours;
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
         Log.d("ContourUtils", contours.size() + " contours found");
