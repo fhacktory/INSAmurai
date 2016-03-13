@@ -50,10 +50,10 @@ public class RaceActivity extends AppCompatActivity {
         gameView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                gameView.setStart(new Point((int)event.getX(), (int)event.getY()));
-
-                pleaseTouch.setVisibility(View.GONE);
-                go.setVisibility(View.VISIBLE);
+                if(gameView.setStart(new Point((int)event.getX(), (int)event.getY()))) {
+                    pleaseTouch.setVisibility(View.GONE);
+                    go.setVisibility(View.VISIBLE);
+                }
 
                 return true;
             }

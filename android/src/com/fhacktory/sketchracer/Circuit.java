@@ -99,13 +99,18 @@ public class Circuit implements Parcelable {
         return Math.max((double) (maxX - minX) / c.getWidth(), (double) (maxY - minY) / c.getHeight());
     }
 
-    public void setStart(Point start, View parent) {
-        this.start = start;
+    public boolean setStart(Point start, View parent) {
+        start.x *= getScale(parent);
+        start.y *= getScale(parent);
+        start.x += minX;
+        start.y += minY;
 
-        this.start.x *= getScale(parent);
-        this.start.y *= getScale(parent);
-        this.start.x += minX;
-        this.start.y += minY;
+        if(PointInsideCircuit(start)) {
+            this.start = start;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     public void drawOn(Canvas c, Paint paint) {
@@ -168,7 +173,7 @@ public class Circuit implements Parcelable {
 
 
     public boolean PointInsideCircuit(Point x){
-        if(PointInPolygon(outside,x) || PointOnPolygon(outside,x) && !(PointInPolygon(inside,x)))
+        if((PointInPolygon(outside,x) || PointOnPolygon(outside,x)) && !(PointInPolygon(inside,x)))
             return true;
         return false;
     }

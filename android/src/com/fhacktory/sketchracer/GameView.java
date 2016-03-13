@@ -26,9 +26,15 @@ public class GameView extends View {
         invalidate();
     }
 
-    public void setStart(Point start) {
-        if(circ != null) circ.setStart(start, this);
+    public boolean setStart(Point start) {
+        boolean res;
+        if(circ != null) {
+            res = circ.setStart(start, this);
+        } else {
+            res = false;
+        }
         invalidate();
+        return res;
     }
 
     public Point getStart() {
