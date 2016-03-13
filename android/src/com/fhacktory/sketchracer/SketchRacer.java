@@ -324,8 +324,15 @@ public class SketchRacer extends ApplicationAdapter {
         world.createJoint(leftRearJointDef);
         world.createJoint(rightRearJointDef);
 
-        body.setTransform(body.getPosition(), startingDir.angle());
-        targetAngle = startingDir.angle();
+        float angle = (startingDir.angle()) % (2f*(float)Math.PI);
+
+        body.setTransform(body.getPosition(), angle);
+        leftWheel.setTransform(leftWheel.getPosition(), angle);
+        rightWheel.setTransform(rightWheel.getPosition(), angle);
+        leftRearWheel.setTransform(leftRearWheel.getPosition(), angle);
+        rightRearWheel.setTransform(rightRearWheel.getPosition(), angle);
+
+        targetAngle = body.getAngle();
     }
 
     private void createCircuit() {
@@ -341,20 +348,20 @@ public class SketchRacer extends ApplicationAdapter {
         int midY = (circuit.getMaxY() - circuit.getMinY())/2;
         int i = 0;
         for(Point p : inside) {
-            this.inside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+            this.inside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
             this.inPolygon[i] = (p.x - midX)/5;
-            this.inPolygon[i+1] = (p.y - midY)/5;
+            this.inPolygon[i+1] = -(p.y - midY)/5;
             i += 2;
         }
         i = 0;
         for(Point p : outside) {
-            this.outside.add(new Vector2((p.x - midX)/5, (p.y - midY)/5));
+            this.outside.add(new Vector2((p.x - midX)/5, -(p.y - midY)/5));
             this.outPolygon[i] = (p.x - midX)/5;
-            this.outPolygon[i+1] = (p.y - midY)/5;
+            this.outPolygon[i+1] = -(p.y - midY)/5;
             i += 2;
         }
         this.start.x = (this.start.x - midX)/5;
-        this.start.y = (this.start.y - midY)/5;
+        this.start.y = -(this.start.y - midY)/5;
         startingPos = new Vector2(start.x,start.y);
         // build walls
         BodyDef wallDef;
@@ -430,7 +437,7 @@ public class SketchRacer extends ApplicationAdapter {
         startLine.createFixture(startLineFixtureDef);
         startLineShape.dispose();
 
-        startingDir = norm.scl(-1f/2f);
+        startingDir = norm.scl(1/2f);
     }
 
     @Override
