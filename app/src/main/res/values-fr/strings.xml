@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Sketch Racer</string>
     <string name="unknown_error">Une erreur inconnue s\'est produite, veuillez réessayer.</string>
-    <string name="must_take_photo">Vous devez prendre la photo du circuit sur lequel vous allez jouer.</string>
+    <string name="must_take_photo">Vous devez sélectionner une photo du circuit sur lequel vous allez jouer.</string>
     <string name="photo_error">Erreur de déclenchement de l\'appareil photo.</string>
     <string name="retry">Réessayer</string>
     <string name="use">Utiliser</string>
@@ -13,4 +13,6 @@
     <string name="processing">Traitement</string>
     <string name="exit">Quitter</string>
     <string name="cancel">Annuler</string>
+    <string name="unsupported">Source non prise en charge. Merci de choisir une autre source d\'images.</string>
+    <string name="select_picture">Sélectionner une image</string>
 </resources>

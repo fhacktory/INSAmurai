@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Sketch Racer</string>
     <string name="unknown_error">An unknown error occured, please retry.</string>
-    <string name="must_take_photo">You must take a picture of the circuit you want to play with.</string>
+    <string name="must_take_photo">You must choose a picture of the circuit you want to play with.</string>
     <string name="photo_error">Error while initializing camera.</string>
     <string name="retry">Retry</string>
     <string name="use">Use</string>
@@ -13,4 +13,6 @@
     <string name="processing">Processing</string>
     <string name="exit">Exit</string>
     <string name="cancel">Cancel</string>
+    <string name="unsupported">Unsupported source. Please try another image source.</string>
+    <string name="select_picture">Select a picture</string>
 </resources>

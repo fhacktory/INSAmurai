@@ -1,12 +1,18 @@
 package com.fhactory.sketchracer;
 
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
 import android.graphics.Point;
 import android.net.Uri;
+import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.v4.content.CursorLoader;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,8 +42,6 @@ public class PhotoActivity extends AppCompatActivity {
             takePhoto();
         }
     };
-
-
 
     private ContourView contourView;
     private File photoFile;
@@ -70,6 +74,26 @@ public class PhotoActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if(requestCode == CAMERA_REQUEST_CODE) {
             if(resultCode == RESULT_OK) {
+                if(data != null) {
+                    String path;
+                    if(data.getData().getScheme().equals("content"))
+                        path = getRealPathFromURI(data.getData());
+                    else if(data.getData().getScheme().equals("file"))
+                        path = data.getData().getPath();
+                    else {
+                        new AlertDialog.Builder(this)
+                                .setMessage(getString(R.string.unsupported))
+                                .setPositiveButton(getString(R.string.retry), takePhoto)
+                                .setNegativeButton(getString(R.string.exit), finish)
+                                .setCancelable(false)
+                                .show();
+
+                        return;
+                    }
+
+                    photoFile = new File(path);
+                }
+
                 scanPhoto();
             } else if(resultCode == RESULT_CANCELED) {
                 if(!contourView.hasPoints()) {
@@ -93,36 +117,49 @@ public class PhotoActivity extends AppCompatActivity {
     }
 
     private void takePhoto() {
-        //demander à prendre une photo
-        Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-
-        if (cameraIntent.resolveActivity(getPackageManager()) != null) {
-            try {
-                photoFile = File.createTempFile(
-                        "photo",  /* prefix */
-                        ".jpg",         /* suffix */
-                        getExternalFilesDir("temporary")      /* directory */
-                );
-
-                cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-
-                startActivityForResult(cameraIntent, CAMERA_REQUEST_CODE);
-            } catch (IOException e) {
-                new AlertDialog.Builder(this)
-                        .setTitle(getString(R.string.error))
-                        .setMessage(getString(R.string.photo_error))
-                        .setPositiveButton(getString(R.string.ok), finish)
-                        .setCancelable(false)
-                        .show();
-            }
-        } else {
+        try {
+            photoFile = File.createTempFile(
+                    "photo",  /* prefix */
+                    ".jpg",         /* suffix */
+                    getExternalFilesDir("temporary")      /* directory */
+            );
+        } catch (IOException e) {
             new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.error))
-                .setMessage(getString(R.string.photo_error))
-                .setPositiveButton(getString(R.string.ok), finish)
+                    .setTitle(getString(R.string.error))
+                    .setMessage(getString(R.string.photo_error))
+                    .setPositiveButton(getString(R.string.ok), finish)
                     .setCancelable(false)
-                .show();
+                    .show();
         }
+
+        Uri outputFileUri = Uri.fromFile(photoFile);
+
+        // Get image from camera
+        final List<Intent> cameraIntents = new ArrayList<>();
+        final Intent captureIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        final PackageManager packageManager = getPackageManager();
+        final List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
+        for(ResolveInfo res : listCam) {
+            final String packageName = res.activityInfo.packageName;
+            final Intent intent = new Intent(captureIntent);
+            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
+            intent.setPackage(packageName);
+            intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
+            cameraIntents.add(intent);
+        }
+
+        // Get image from gallery
+        final Intent galleryIntent = new Intent();
+        galleryIntent.setType("image/*");
+        galleryIntent.setAction(Intent.ACTION_GET_CONTENT);
+
+        // Chooser of filesystem options
+        final Intent chooserIntent = Intent.createChooser(galleryIntent, getString(R.string.select_picture));
+
+        // Add the camera options
+        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, cameraIntents.toArray(new Parcelable[cameraIntents.size()]));
+
+        startActivityForResult(chooserIntent, CAMERA_REQUEST_CODE);
     }
 
     private void scanPhoto() {
@@ -221,4 +258,17 @@ public class PhotoActivity extends AppCompatActivity {
 
         startActivity(i);
     }
+
+    //gets the real path from a content:// URI
+    private String getRealPathFromURI(Uri contentUri) {
+        String[] proj = { MediaStore.Images.Media.DATA };
+        CursorLoader loader = new CursorLoader(this, contentUri, proj, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+        cursor.moveToFirst();
+        String result = cursor.getString(column_index);
+        cursor.close();
+        return result;
+    }
+
 }

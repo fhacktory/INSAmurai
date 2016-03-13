@@ -28,6 +28,8 @@ public class Sketch {
     }
 
     public List<MatOfPoint> computeContours() {
+        Log.d("Sketch", "Now scanning picture: "+this.path);
+
         // load opencv library
         Mat image = Imgcodecs.imread(path, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
         Imgproc.medianBlur(image,image,9);
