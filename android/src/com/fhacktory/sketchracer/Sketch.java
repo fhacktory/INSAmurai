@@ -45,7 +45,7 @@ public class Sketch {
         //Imgproc.erode(image, image, element);
         Mat element1 = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2 * dilation_size + 1, 2 * dilation_size + 1));
         Imgproc.dilate(image, image, element1);
-        if(image.empty()) System.out.println("merde");
+        if(image.empty()) return contours;
         Imgproc.findContours(image, contours, hierarchy, Imgproc.RETR_CCOMP, Imgproc.CHAIN_APPROX_NONE);
 
         Log.d("Sketch", contours.size() + " contours found");

@@ -4,12 +4,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Point;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.view.View;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Circuit {
+public class Circuit implements Parcelable {
     private static final int WIDTH = 40;
 
     private List<Point> outside, inside;
@@ -66,6 +68,28 @@ public class Circuit {
         maxY += 5;
     }
 
+    protected Circuit(Parcel in) {
+        outside = in.createTypedArrayList(Point.CREATOR);
+        inside = in.createTypedArrayList(Point.CREATOR);
+        start = in.readParcelable(Point.class.getClassLoader());
+        minX = in.readInt();
+        minY = in.readInt();
+        maxX = in.readInt();
+        maxY = in.readInt();
+    }
+
+    public static final Creator<Circuit> CREATOR = new Creator<Circuit>() {
+        @Override
+        public Circuit createFromParcel(Parcel in) {
+            return new Circuit(in);
+        }
+
+        @Override
+        public Circuit[] newArray(int size) {
+            return new Circuit[size];
+        }
+    };
+
     private double getScale(View parent) {
         return Math.max((double) (maxX - minX) / parent.getWidth(), (double) (maxY - minY) / parent.getHeight());
     }
@@ -121,5 +145,21 @@ public class Circuit {
 
     public Point getStart() {
         return start;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeTypedList(outside);
+        dest.writeTypedList(inside);
+        dest.writeParcelable(start, flags);
+        dest.writeInt(minX);
+        dest.writeInt(minY);
+        dest.writeInt(maxX);
+        dest.writeInt(maxY);
     }
 }

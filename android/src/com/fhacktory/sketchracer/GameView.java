@@ -35,6 +35,10 @@ public class GameView extends View {
         return circ.getStart();
     }
 
+    public Circuit getCircuit() {
+        return circ;
+    }
+
     @Override
     public void onDraw(Canvas c) {
         if(circ != null) circ.drawOn(c, paint);

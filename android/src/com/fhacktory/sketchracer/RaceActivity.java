@@ -89,6 +89,8 @@ public class RaceActivity extends AppCompatActivity {
 
     public void cEstParti(View v) {
         Intent i = new Intent(this, AndroidLauncher.class);
+        i.putExtra("circuit", gameView.getCircuit());
+        i.putExtra("turns", turns);
         startActivity(i);
     }
 }
