@@ -2,17 +2,20 @@ package com.fhacktory.sketchracer;
 
 import android.content.DialogInterface;
 import android.graphics.Point;
+import android.graphics.drawable.shapes.Shape;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.SeekBar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -36,6 +39,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Vector;
 
 
 public class SketchRacer extends ApplicationAdapter {
@@ -43,6 +47,7 @@ public class SketchRacer extends ApplicationAdapter {
     private final static float MAX_STEER_ANGLE = (float) (Math.PI/4);
     private final static float STEER_SPEED = 1.5f;
     public final static float HORSEPOWERS = 60;
+    private final static float LINE_WIDTH = 1;
 
     private final static Vector2 leftRearWheelPosition = new Vector2(-1.5f,1.9f);
     private final static Vector2 rightRearWheelPosition = new Vector2(1.5f,1.9f);
@@ -55,16 +60,19 @@ public class SketchRacer extends ApplicationAdapter {
     private World world;
     private Texture img;
     private Sprite sprite;
-    private Body body, leftWheel, rightWheel, leftRearWheel, rightRearWheel;
+    private Body body, leftWheel, rightWheel, leftRearWheel, rightRearWheel, startLine;
     private RevoluteJoint leftJoint, rightJoint;
     private Box2DDebugRenderer debugRenderer;
     private Matrix4 debugMatrix;
     private OrthographicCamera camera;
-    private SpriteBatch batch;
+
     private Skin touchpadSkin;
     private Touchpad.TouchpadStyle touchpadStyle;
     private Drawable touchBackground, touchKnob;
     private Touchpad touchpad;
+
+    private SpriteBatch batch;
+    private ShapeRenderer renderer;
 
     private Stage stage;
 
@@ -76,6 +84,7 @@ public class SketchRacer extends ApplicationAdapter {
 
     private List<Vector2> inside, outside;
     private Vector2 start;
+    private Vector2[] startVertices;
 
     private int lapIndex = 0;
     private int lapIndexReverse = 0;
@@ -140,6 +149,7 @@ public class SketchRacer extends ApplicationAdapter {
     @Override
     public void create() {
         batch = new SpriteBatch();
+        renderer = new ShapeRenderer();
 
         world = new World(new Vector2(0,0), true);
 
@@ -172,7 +182,7 @@ public class SketchRacer extends ApplicationAdapter {
         Gdx.input.setInputProcessor(stage);
 
         // Create a Box2DDebugRenderer, this allows us to see the physics simulation controlling the scene
-        debugRenderer = new Box2DDebugRenderer();
+        //debugRenderer = new Box2DDebugRenderer();
         camera = new OrthographicCamera(20f*Gdx.graphics.getWidth()/Gdx.graphics.getHeight(),20f);
 
         touchpad.addListener(new InputListener() {
@@ -394,20 +404,20 @@ public class SketchRacer extends ApplicationAdapter {
         wallFixtureDef.density = 1;
         wall.createFixture(wallFixtureDef);
         wallShape.dispose();
-
+        // start/finish line
         BodyDef startLineDef = new BodyDef();
         startLineDef.type = BodyDef.BodyType.StaticBody;
         startLineDef.position.set(0,0);
         Body startLine = world.createBody(startLineDef);
         PolygonShape startLineShape = new PolygonShape();
-        Vector2[] vertices = new Vector2[4];
-        vertices[0] = this.inside.get(lapFirstIndex);
-        vertices[1] = this.outside.get(lapFirstIndex);
-        Vector2 norm = new Vector2(-vertices[0].y + vertices[1].y,vertices[0].x - vertices[1].x);
+        startVertices = new Vector2[4];
+        startVertices[0] = this.inside.get(lapFirstIndex);
+        startVertices[1] = this.outside.get(lapFirstIndex);
+        Vector2 norm = new Vector2(-startVertices[0].y + startVertices[1].y,startVertices[0].x - startVertices[1].x);
         norm.scl(2f/norm.len());
-        vertices[2] = vertices[0].cpy().add(norm);
-        vertices[3] = vertices[1].cpy().add(norm);
-        startLineShape.set(vertices);
+        startVertices[2] = startVertices[0].cpy().add(norm);
+        startVertices[3] = startVertices[1].cpy().add(norm);
+        startLineShape.set(startVertices);
         FixtureDef startLineFixtureDef = new FixtureDef();
         startLineFixtureDef.shape = startLineShape;
         startLineFixtureDef.density = 0;
@@ -415,7 +425,7 @@ public class SketchRacer extends ApplicationAdapter {
         startLine.createFixture(startLineFixtureDef);
         startLineShape.dispose();
 
-        startingPos = vertices[0].cpy().add(vertices[0].cpy().sub(vertices[1]).scl(-.5f));
+        startingPos = startVertices[0].cpy().add(startVertices[0].cpy().sub(startVertices[1]).scl(-.5f));
         startingDir = norm;
     }
 
@@ -463,6 +473,21 @@ public class SketchRacer extends ApplicationAdapter {
         Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        renderer.setProjectionMatrix(camera.combined);
+        renderer.begin(ShapeRenderer.ShapeType.Filled);
+        renderer.setColor(0, 0, 0, 1);
+        for(int i=0;i<inside.size()-1;i++) {
+            renderer.rectLine(inside.get(i), inside.get(i + 1), LINE_WIDTH);
+        }
+        renderer.rectLine(inside.get(inside.size() - 1), inside.get(0), LINE_WIDTH);
+        for(int i=0;i<outside.size()-1;i++) {
+            renderer.rectLine(outside.get(i), outside.get(i+1), LINE_WIDTH);
+        }
+        renderer.rectLine(outside.get(outside.size() - 1), outside.get(0), LINE_WIDTH);
+        renderer.setColor(1,0,0,1);
+        renderer.rectLine(startVertices[0],startVertices[3],2);
+        renderer.end();
+
         batch.setProjectionMatrix(camera.combined);
 
         // Scale down the sprite batches projection matrix to box2D size
@@ -479,7 +504,7 @@ public class SketchRacer extends ApplicationAdapter {
         stage.draw();
         // Now render the physics world using our scaled down matrix
         // Note, this is strictly optional and is, as the name suggests, just for debugging purposes
-        debugRenderer.render(world, debugMatrix);
+        //debugRenderer.render(world, debugMatrix);
 
         // Check checkpoints
         if(Math.sqrt(Math.pow(inside.get(lapIndex).x - body.getPosition().x, 2)

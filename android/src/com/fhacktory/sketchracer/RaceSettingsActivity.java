@@ -284,6 +284,8 @@ public class RaceSettingsActivity extends AppCompatActivity {
                             listPoints.toArray(tablPoints);
 
                             circuitView.setCircuit(new Circuit(tablPoints));
+                            go.setVisibility(View.GONE);
+                            pleaseTouch.setVisibility(View.VISIBLE);
                             pd.dismiss();
                             cleanTempDir(RaceSettingsActivity.this);
                         }
