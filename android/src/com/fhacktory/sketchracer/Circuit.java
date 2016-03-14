@@ -8,6 +8,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.view.View;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -63,11 +64,58 @@ public class Circuit implements Parcelable {
             maxX = Math.max(maxX, p.x);
             maxY = Math.max(maxY, p.y);
         }
-
         minX -= 5;
         minY -= 5;
         maxX += 5;
         maxY += 5;
+
+        Intersect();
+    }
+
+
+    public void Intersect(){
+        int n = inside.size();
+        for(int i=0;i<n;++i) {
+            for(int j=0;j<i-1;++j) {
+                if(SegementIntersection(inside.get(i), inside.get((i - 1+n)%n), inside.get(j), inside.get((j - 1 + n)%n))) {
+                    double t = FindIntersection(inside.get(i),inside.get((i-1+n)%n),inside.get(j),inside.get((j-1+n)%n));
+                    int ex = (int)(inside.get(i).x + (inside.get(i-1).x-inside.get(i).x)*t);
+                    int ey = (int)(inside.get(i).y + (inside.get(i-1).y-inside.get(i).y)*t);
+                    if(j+n-i+1>i-1-j)
+                    {
+                        for(int k=j;k<=i-1;++k)
+                            inside.get(k).set(ex,ey);
+                    } else {
+                        for(int k=i;k<=j+n;++k)
+                            inside.get(k%n).set(ex,ey);
+                    }
+                    break;
+                }
+
+            }
+        }
+
+        n = outside.size();
+        for(int i=0;i<n;++i) {
+            for(int j=0;j<i-1;++j) {
+                if(SegementIntersection(outside.get(i), outside.get((i - 1 + n) % n), outside.get(j), outside.get((j - 1 + n) % n))) {
+                    double t = FindIntersection(outside.get(i),outside.get((i-1+n)%n),outside.get(j),outside.get((j-1+n)%n));
+                    int ex = (int)(outside.get(i).x + (outside.get(i-1).x-outside.get(i).x)*t);
+                    int ey = (int)(outside.get(i).y + (outside.get(i-1).y-outside.get(i).y)*t);
+                    boolean bool1 = Math.abs(outside.get(i).x-outside.get((i-1+n)%n).x)>=2.0 * Math.abs(outside.get(i).x-ex);
+                    boolean bool2 = Math.abs(outside.get(j).x-outside.get((j-1+n)%n).x)>=2.0 * Math.abs(outside.get(j).x - ex);
+                    if(j+n-i+1>i-1-j)
+                    {
+                        for(int k=j;k<=i-1;++k)
+                            outside.get(k).set(ex,ey);
+                    } else {
+                        for(int k=i;k<=j+n;++k)
+                            outside.get(k%n).set(ex,ey);
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     protected Circuit(Parcel in) {
@@ -182,7 +230,24 @@ public class Circuit implements Parcelable {
     }
 
 
+    public boolean SegementIntersection(Point a, Point b, Point c, Point d){
+        if (cross(new Point(d.x-a.x,d.y-a.y),new Point(b.x-a.x,b.y-a.y)) *
+                cross(new Point(c.x-a.x,c.y-a.y), new Point(b.x-a.x,b.y-a.y)) > -EPS)
+            return false;
+        if (cross(new Point(a.x-c.x,a.y-c.y), new Point(d.x-c.x,d.y-c.y)) *
+                cross(new Point(b.x-c.x,b.y-c.y), new Point(d.x-c.x,d.y-c.y)) > -EPS)
+            return false;
+        return true;
+    }
 
+    public double FindIntersection(Point a,Point b, Point c,Point d){
+        double cross1 = cross(new Point(c.x-a.x,c.y-a.y), new Point(d.x-c.x,d.y-c.y));
+        double cross2 = cross(new Point(b.x-a.x,b.y-a.y),new Point(d.x-c.x,d.y-c.y));
+        if(cross1<EPS  || cross2<EPS)
+            return 0;
+        return cross1/cross2;
+
+    }
 
     public boolean PointInsideCircuit(Point x){
         if(PointInPolygon(outside,x) && !PointOnPolygon(inside,x) && !( PointInPolygon(inside,x)))
@@ -219,6 +284,7 @@ public class Circuit implements Parcelable {
         return new Point((int)(a.x+(b.x-a.x)*r),(int)(a.y+(b.y-a.y)*r));
     }
 
+    public double cross(Point p,Point q) { return p.x*q.y-p.y*q.x; }
     public double dot(Point p, Point q, Point a){ return (p.x-a.x)*(q.x-a.x)+(p.y-a.y)*(q.y-a.y);}
     public double dist2(Point p, Point q)   { return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y); }
 
