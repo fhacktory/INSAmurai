@@ -2,14 +2,12 @@ package com.fhacktory.sketchracer;
 
 import android.content.DialogInterface;
 import android.graphics.Point;
-import android.graphics.drawable.shapes.Shape;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.SeekBar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -39,7 +37,6 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Vector;
 
 
 public class SketchRacer extends ApplicationAdapter {
@@ -142,6 +139,9 @@ public class SketchRacer extends ApplicationAdapter {
         lapFirstIndex = indexClosest;
         lapIndex = indexClosest + 1;
         lapIndexReverse = indexClosest - 1;
+
+        if(lapIndex >= inner.size()) lapIndex = 0;
+        if(lapIndexReverse < 0) lapIndexReverse = inner.size() - 1;
 
         act.setHud1(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
     }
@@ -374,7 +374,7 @@ public class SketchRacer extends ApplicationAdapter {
         wallDef.position.set(0, 0);
         wall = world.createBody(wallDef);
         wallShape = new EdgeShape();
-        wallShape.set(this.inside.get(this.inside.size() - 1).x,this.inside.get(this.inside.size() - 1).y,this.inside.get(0).x,this.inside.get(0).y);
+        wallShape.set(this.inside.get(this.inside.size() - 1).x, this.inside.get(this.inside.size() - 1).y, this.inside.get(0).x, this.inside.get(0).y);
         wallFixtureDef = new FixtureDef();
         wallFixtureDef.shape = wallShape;
         wallFixtureDef.density = 1;
@@ -507,8 +507,7 @@ public class SketchRacer extends ApplicationAdapter {
         //debugRenderer.render(world, debugMatrix);
 
         // Check checkpoints
-        if(Math.sqrt(Math.pow(inside.get(lapIndex).x - body.getPosition().x, 2)
-                +Math.pow(inside.get(lapIndex).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
+        if(isOnTheLine(lapIndex)) {
             Log.v("SketchRacer", "Passed checkpoint "+lapIndex+"!");
             if(lapIndex == lapFirstIndex) {
                 turns--;
@@ -521,8 +520,7 @@ public class SketchRacer extends ApplicationAdapter {
 
             lapIndex++;
             if(lapIndex == inside.size()) lapIndex = 0;
-        } else if(Math.sqrt(Math.pow(inside.get(lapIndexReverse).x - body.getPosition().x, 2)
-                +Math.pow(inside.get(lapIndexReverse).y - body.getPosition().y, 2)) < Circuit.WIDTH*2 / 5) {
+        } else if(isOnTheLine(lapIndexReverse)) {
             Log.v("SketchRacer", "Passed reverse checkpoint "+lapIndexReverse+"!");
             if(lapIndexReverse == lapFirstIndex) {
                 turns--;
@@ -543,6 +541,23 @@ public class SketchRacer extends ApplicationAdapter {
         } else {
             act.setHud2(getRunTime());
         }
+    }
+
+    private boolean isOnTheLine(int lapIndex) {
+        int startX = (int) inside.get(lapIndex).x;
+        int startY = (int) inside.get(lapIndex).y;
+        int endX = (int) outside.get(lapIndex).x;
+        int endY = (int) outside.get(lapIndex).y;
+
+        int carX = (int) body.getPosition().x;
+        int carY = (int) body.getPosition().y;
+
+        float dist1 = (float) (Math.sqrt((startX-carX) * (startX-carX) + (startY-carY) * (startY-carY)));
+        float dist2 = (float) (Math.sqrt((endX-carX) * (endX-carX) + (endY-carY) * (endY-carY)));
+        float dist3 = (float) (Math.sqrt((startX-endX) * (startX-endX) + (startY-endY) * (startY-endY)));
+
+        //System.out.println(Math.abs(dist3 - (dist2 + dist1)));
+        return Math.abs(dist3 - (dist2 + dist1)) < 1;
     }
 
     private String getRunTime() {
