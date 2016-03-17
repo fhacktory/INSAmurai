@@ -17,11 +17,14 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.NumberPicker;
+import android.widget.Toast;
 
 import org.opencv.core.MatOfPoint;
 
@@ -57,6 +60,11 @@ public class RaceSettingsActivity extends AppCompatActivity {
 
 
     private CircuitView circuitView;
+
+    //just car rain stuff
+    private CarRainView carRainView;
+    private int konamindex = 0;
+    private int sizeX, sizeY;
 
     private int turns = 1;
 
@@ -100,9 +108,58 @@ public class RaceSettingsActivity extends AppCompatActivity {
                     go.setVisibility(View.VISIBLE);
                 }
 
-                return true;
+                return false;
             }
         });
+
+        //just car rain stuff
+        carRainView = (CarRainView) findViewById(R.id.car_rain_view);
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        sizeX = size.x;
+        sizeY = size.y;
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent moe) {
+        if(moe.getAction() == MotionEvent.ACTION_DOWN && konamindex != 10) {
+            //Up, up, down, down, left, right, left, right (B and A handled elsewhere)
+            if(konamindex > 8) konamindex = 0; //fail!
+            else if(konamindex < 2 && moe.getRawY() < 100) konamindex++; //Up
+            else if(konamindex >= 2 && konamindex < 4 && sizeY - moe.getRawY() < 100) konamindex++; //Down
+            else if((konamindex == 4 || konamindex == 6) && moe.getRawX() < 100) konamindex++; //Left
+            else if((konamindex == 5 || konamindex == 7) && sizeX - moe.getRawX() < 100) konamindex++; //Right
+            else konamindex = 0;
+
+            Log.v("RaceSettingsActivity", "konamindex = "+konamindex);
+        }
+
+        return super.onTouchEvent(moe);
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        boolean consumeKeyEvent = false;
+
+        if (event.getAction() == KeyEvent.ACTION_DOWN && konamindex != 10) {
+            if (konamindex == 8 && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP) {
+                konamindex++;
+                consumeKeyEvent = true;
+            } else if (konamindex == 9 && event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN) {
+                konamindex++;
+                consumeKeyEvent = true;
+                carRainView.enable();
+
+                Toast.makeText(this, R.string.car_rain, Toast.LENGTH_LONG).show();
+            } else {
+                konamindex = 0; //fail!
+            }
+
+            Log.v("RaceSettingsActivity", "konamindex = " + konamindex);
+        }
+
+        return consumeKeyEvent || super.dispatchKeyEvent(event);
     }
 
     @Override
@@ -284,6 +341,12 @@ public class RaceSettingsActivity extends AppCompatActivity {
                             listPoints.toArray(tablPoints);
 
                             circuitView.setCircuit(new Circuit(tablPoints));
+                            if(circuitView.getCircuit().isDirty()) {
+                                new AlertDialog.Builder(RaceSettingsActivity.this)
+                                        .setMessage(getString(R.string.dirty_circuit))
+                                        .setPositiveButton(getString(R.string.ok), null)
+                                        .show();
+                            }
                             go.setVisibility(View.GONE);
                             pleaseTouch.setVisibility(View.VISIBLE);
                             pd.dismiss();

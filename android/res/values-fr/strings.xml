@@ -19,4 +19,6 @@
     <string name="race_end">Fin de la course</string>
     <string name="race_result">"La course est terminée ! Votre temps est de "</string>
     <string name="lap">"Tour "</string>
+    <string name="dirty_circuit">J\'ai eu des difficultés à construire ce circuit. J\'ai fait de mon mieux, mais le résultat n\'est pas garanti. Cela peut être causé par des virages trop serrés ou des parties trop proches.</string>
+    <string name="car_rain">PLUIE DE VOITURES !</string>
 </resources>

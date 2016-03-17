@@ -6,6 +6,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.util.Log;
 import android.view.View;
 
 import java.lang.reflect.Array;
@@ -22,6 +23,7 @@ public class Circuit implements Parcelable {
     private Point start = null;
 
     private int minX, minY, maxX, maxY;
+    private boolean dirty = false;
 
     public Circuit(Point[] points) {
         inside = new ArrayList<>();
@@ -69,11 +71,50 @@ public class Circuit implements Parcelable {
         maxX += 5;
         maxY += 5;
 
+        ArrayList<Point> cloneInside = new ArrayList<>();
+        ArrayList<Point> cloneOutside = new ArrayList<>();
+        for(Point p : inside) cloneInside.add(new Point(p.x, p.y));
+        for(Point p : outside) cloneOutside.add(new Point(p.x, p.y));
+
         Intersect();
+
+        for(int i = 0; i < cloneInside.size(); i++) {
+            if(Math.sqrt(dist2(inside.get(i), outside.get(i))) > 200) {
+                Log.i("Circuit", "I do think Intersect did something bad. Track width is " +
+                        Math.sqrt(dist2(inside.get(i), outside.get(i))) + "...");
+
+                //let's backtrack!
+                int j=i;
+                while(Math.abs(Math.sqrt(dist2(inside.get(j), outside.get(j))) - WIDTH*2) > 5) {
+                    j = (j - 1);
+                    if(j < 0) j = inside.size() - 1;
+                    if(j >= inside.size()) j = 0;
+                }
+
+                j++;
+                if(j < 0) j = inside.size() - 1;
+                if(j >= inside.size()) j = 0;
+
+                while(Math.abs(Math.sqrt(dist2(inside.get(j), outside.get(j))) - WIDTH*2) > 5) {
+                    //hack back the original pair of points
+                    inside.set(j, cloneInside.get(j));
+                    outside.set(j, cloneOutside.get(j));
+
+                    j++;
+                    if(j < 0) j = inside.size() - 1;
+                    if(j >= inside.size()) j = 0;
+                }
+
+                dirty = true;
+            }
+        }
     }
 
+    public boolean isDirty() {
+        return dirty;
+    }
 
-    public void Intersect(){
+    private void Intersect(){
         int n = inside.size();
         for(int i=0;i<n;++i) {
             for(int j=0;j<i-1;++j) {
@@ -126,6 +167,7 @@ public class Circuit implements Parcelable {
         minY = in.readInt();
         maxX = in.readInt();
         maxY = in.readInt();
+        dirty = in.readInt() == 1;
     }
 
     public static final Creator<Circuit> CREATOR = new Creator<Circuit>() {
@@ -227,10 +269,11 @@ public class Circuit implements Parcelable {
         dest.writeInt(minY);
         dest.writeInt(maxX);
         dest.writeInt(maxY);
+        dest.writeInt(dirty ? 1 : 0);
     }
 
 
-    public boolean SegementIntersection(Point a, Point b, Point c, Point d){
+    private boolean SegementIntersection(Point a, Point b, Point c, Point d){
         if (cross(new Point(d.x-a.x,d.y-a.y),new Point(b.x-a.x,b.y-a.y)) *
                 cross(new Point(c.x-a.x,c.y-a.y), new Point(b.x-a.x,b.y-a.y)) > -EPS)
             return false;
@@ -240,7 +283,7 @@ public class Circuit implements Parcelable {
         return true;
     }
 
-    public double FindIntersection(Point a,Point b, Point c,Point d){
+    private double FindIntersection(Point a,Point b, Point c,Point d){
         double cross1 = cross(new Point(c.x-a.x,c.y-a.y), new Point(d.x-c.x,d.y-c.y));
         double cross2 = cross(new Point(b.x-a.x,b.y-a.y),new Point(d.x-c.x,d.y-c.y));
         if(cross1<EPS  || cross2<EPS)
@@ -255,7 +298,7 @@ public class Circuit implements Parcelable {
         return false;
     }
 
-    public boolean PointInPolygon(ArrayList<Point> p, Point q){
+    private boolean PointInPolygon(ArrayList<Point> p, Point q){
         boolean c = false;
         for(int i=0;i<p.size();++i){
             int j = (i+1)%p.size();
@@ -267,7 +310,7 @@ public class Circuit implements Parcelable {
         return c;
     }
 
-    public boolean PointOnPolygon(ArrayList<Point> p, Point q){
+    private boolean PointOnPolygon(ArrayList<Point> p, Point q){
         for(int i=0;i<p.size();++i){
             if(dist2(ProjectPointSegment(p.get(i),p.get((i+1)%p.size()),q),q)<EPS)
                 return true;
@@ -275,7 +318,7 @@ public class Circuit implements Parcelable {
         return false;
     }
 
-    Point ProjectPointSegment(Point a, Point b, Point c){
+    private Point ProjectPointSegment(Point a, Point b, Point c){
         double r = dot(b,b,a);
         if(Math.abs(r)<EPS) return a;
         r = dot(c,b,a)/r;
@@ -284,9 +327,9 @@ public class Circuit implements Parcelable {
         return new Point((int)(a.x+(b.x-a.x)*r),(int)(a.y+(b.y-a.y)*r));
     }
 
-    public double cross(Point p,Point q) { return p.x*q.y-p.y*q.x; }
-    public double dot(Point p, Point q, Point a){ return (p.x-a.x)*(q.x-a.x)+(p.y-a.y)*(q.y-a.y);}
-    public double dist2(Point p, Point q)   { return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y); }
+    private double cross(Point p,Point q) { return p.x*q.y-p.y*q.x; }
+    private double dot(Point p, Point q, Point a){ return (p.x-a.x)*(q.x-a.x)+(p.y-a.y)*(q.y-a.y);}
+    private double dist2(Point p, Point q)   { return (p.x-q.x)*(p.x-q.x)+(p.y-q.y)*(p.y-q.y); }
 
     public List<Point> getInside() {
         return inside;

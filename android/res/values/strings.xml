@@ -19,4 +19,6 @@
     <string name="race_end">Race ended</string>
     <string name="race_result">"The race is over. Your time is: "</string>
     <string name="lap">"Lap "</string>
+    <string name="dirty_circuit">I had trouble building the circuit. I have done my best, but the result may be bad. This may be caused by too tight curves or by parts that are too close.</string>
+    <string name="car_rain">CAR RAIN!</string>
 </resources>
