@@ -8,6 +8,7 @@ import android.widget.SeekBar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -19,8 +20,12 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
 import com.badlogic.gdx.physics.box2d.EdgeShape;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.physics.box2d.joints.PrismaticJointDef;
@@ -93,6 +98,10 @@ public class SketchRacer extends ApplicationAdapter {
 
     long startMillis = 0;
 
+    Sound collision;
+    Sound engine;
+    long engineId;
+
     private AndroidLauncher act;
 
     public SketchRacer(Circuit circuit, int turns, SeekBar accelerator, AndroidLauncher act) {
@@ -144,6 +153,10 @@ public class SketchRacer extends ApplicationAdapter {
         if(lapIndexReverse < 0) lapIndexReverse = inner.size() - 1;
 
         act.setHud1(act.getString(R.string.lap)+(totalTurns - turns + 1)+"/"+totalTurns);
+
+        collision = Gdx.audio.newSound(Gdx.files.internal("collision.wav"));
+        engine = Gdx.audio.newSound(Gdx.files.internal("engine.wav"));
+        engineId = engine.loop(0.3f, 0.5f, 0);
     }
 
     @Override
@@ -204,6 +217,34 @@ public class SketchRacer extends ApplicationAdapter {
             }
         });
 
+        world.setContactListener(new ContactListener() {
+            @Override
+            public void beginContact(Contact contact) {
+
+            }
+
+            @Override
+            public void endContact(Contact contact) {
+
+            }
+
+            @Override
+            public void preSolve(Contact contact, Manifold oldManifold) {
+
+            }
+
+            @Override
+            public void postSolve(Contact contact, ContactImpulse impulse) {
+                Log.v("SketchRacer", "Contact! Impulse=" + impulse.getNormalImpulses()[0]);
+
+                if(impulse.getNormalImpulses()[0] > 30) {
+                    float volume = impulse.getNormalImpulses()[0] / 250f;
+                    if(volume > 1) volume = 1;
+
+                    collision.play(volume);
+                }
+            }
+        });
     }
 
     private void createCar() {
@@ -506,6 +547,10 @@ public class SketchRacer extends ApplicationAdapter {
         // Note, this is strictly optional and is, as the name suggests, just for debugging purposes
         //debugRenderer.render(world, debugMatrix);
 
+        Vector2 speed = body.getLinearVelocity();
+        //Log.d("SketchRacer", "Pitch supposed to be "+(speed.len()/3 + .5f));
+        engine.setPitch(engineId, speed.len()/5 + .3f);
+
         // Check checkpoints
         if(isOnTheLine(lapIndex)) {
             Log.v("SketchRacer", "Passed checkpoint "+lapIndex+"!");
@@ -597,6 +642,11 @@ public class SketchRacer extends ApplicationAdapter {
     public void dispose() {
         img.dispose();
         world.dispose();
+
+        engine.stop(engineId);
+
+        engine.dispose();
+        collision.dispose();
     }
 
     private void killOrthogonalVelocity(Body targetBody) {

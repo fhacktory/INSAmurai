@@ -11,6 +11,10 @@ import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
+import com.badlogic.gdx.backends.android.AndroidAudio;
+import com.badlogic.gdx.backends.android.AndroidFiles;
 import com.badlogic.gdx.backends.android.AndroidFragmentApplication;
 
 public class AndroidLauncher extends AppCompatActivity implements AndroidFragmentApplication.Callbacks {
@@ -35,6 +39,14 @@ public class AndroidLauncher extends AppCompatActivity implements AndroidFragmen
 
 		accelerator.setMax(120);
 		accelerator.setProgress(20);
+
+		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
+		config.useAccelerometer = false;
+		config.useCompass = false;
+		config.useGyroscope = false;
+
+		Gdx.audio = new AndroidAudio(this, config);
+		Gdx.files = new AndroidFiles(getAssets());
 
 		// 6. Finally, replace the AndroidLauncher activity content with the Libgdx Fragment.
 		GameFragment fragment = new GameFragment();
