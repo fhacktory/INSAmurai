@@ -101,6 +101,7 @@ public class SketchRacer extends ApplicationAdapter {
     Sound collision;
     Sound engine;
     long engineId;
+    Sound turn;
 
     private AndroidLauncher act;
 
@@ -157,6 +158,7 @@ public class SketchRacer extends ApplicationAdapter {
         collision = Gdx.audio.newSound(Gdx.files.internal("collision.wav"));
         engine = Gdx.audio.newSound(Gdx.files.internal("engine.wav"));
         engineId = engine.loop(0.3f, 0.5f, 0);
+        turn = Gdx.audio.newSound(Gdx.files.internal("turn.wav"));
     }
 
     @Override
@@ -557,6 +559,7 @@ public class SketchRacer extends ApplicationAdapter {
             if(lapIndex == lapFirstIndex) {
                 turns--;
                 Log.i("SketchRacer", turns+" turns left!");
+                turn.play();
 
                 if(turns == 0) finishLaps();
                 else
@@ -570,6 +573,7 @@ public class SketchRacer extends ApplicationAdapter {
             if(lapIndexReverse == lapFirstIndex) {
                 turns--;
                 Log.i("SketchRacer", turns + " turns left!");
+                turn.play();
 
                 if(turns == 0) finishLaps();
                 else
@@ -636,6 +640,8 @@ public class SketchRacer extends ApplicationAdapter {
                         .show();
             }
         });
+
+        engineSpeed = 0;
     }
 
     @Override
@@ -647,6 +653,7 @@ public class SketchRacer extends ApplicationAdapter {
 
         engine.dispose();
         collision.dispose();
+        turn.dispose();
     }
 
     private void killOrthogonalVelocity(Body targetBody) {
