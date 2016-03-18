@@ -16,6 +16,8 @@ import java.util.List;
 public class Circuit implements Parcelable {
     public static final int WIDTH = 40;
 
+    private static final int NOISE_POINT_REMOVE_THRESHOLD = 20;
+
     private ArrayList<Point> outside, inside;
 
     public final static double EPS = 1e-10;
@@ -23,91 +25,80 @@ public class Circuit implements Parcelable {
     private Point start = null;
 
     private int minX, minY, maxX, maxY;
-    private boolean dirty = false;
+    private boolean dirty;
 
     public Circuit(Point[] points) {
-        inside = new ArrayList<>();
-        outside = new ArrayList<>();
+        int width = WIDTH;
 
-        for(int i = 0; i < points.length - 1; i++) {
-            Point pt1 = points[i];
-            Point pt2 = points[i+1 == points.length ? 0 : i+1];
+        //try generating the circuit as necessary, until it is possible to solve all the intersections
+        //(making it narrower at each try)
+        do {
+            Log.i("Circuit", "I try building it with a width="+width);
 
-            Point middle = new Point((pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2);
+            inside = new ArrayList<>();
+            outside = new ArrayList<>();
 
-            int vectorX = pt2.x - pt1.x;
-            int vectorY = pt2.y - pt1.y;
+            for (int i = 0; i < points.length - 1; i++) {
+                Point pt1 = points[i];
+                Point pt2 = points[i + 1 == points.length ? 0 : i + 1];
 
-            double normalX = - vectorY;
-            double normalY = vectorX;
+                Point middle = new Point((pt1.x + pt2.x) / 2, (pt1.y + pt2.y) / 2);
 
-            double normeVecteurNormal = Math.sqrt(normalX*normalX + normalY*normalY);
+                int vectorX = pt2.x - pt1.x;
+                int vectorY = pt2.y - pt1.y;
 
-            normalX /= normeVecteurNormal;
-            normalY /= normeVecteurNormal;
+                double normalX = -vectorY;
+                double normalY = vectorX;
 
-            if(normeVecteurNormal != 0.0) {
-                outside.add(new Point((int) (middle.x + normalX * WIDTH), (int) (middle.y + normalY * WIDTH)));
-                inside.add(new Point((int) (middle.x - normalX * WIDTH), (int) (middle.y - normalY * WIDTH)));
+                double normeVecteurNormal = Math.sqrt(normalX * normalX + normalY * normalY);
+
+                normalX /= normeVecteurNormal;
+                normalY /= normeVecteurNormal;
+
+                if (normeVecteurNormal != 0.0) {
+                    outside.add(new Point((int) (middle.x + normalX * width), (int) (middle.y + normalY * width)));
+                    inside.add(new Point((int) (middle.x - normalX * width), (int) (middle.y - normalY * width)));
+                }
             }
-        }
 
+            for (Point p : inside) {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            }
+            for (Point p : outside) {
+                minX = Math.min(minX, p.x);
+                minY = Math.min(minY, p.y);
+
+                maxX = Math.max(maxX, p.x);
+                maxY = Math.max(maxY, p.y);
+            }
+            minX -= 5;
+            minY -= 5;
+            maxX += 5;
+            maxY += 5;
+
+            Intersect();
+
+            width--;
+        } while(dirty);
+
+        //scale the whole circuit for it to be at the requested width
+        double ratio = (double) WIDTH / width;
         for(Point p : inside) {
-            minX = Math.min(minX, p.x);
-            minY = Math.min(minY, p.y);
-
-            maxX = Math.max(maxX, p.x);
-            maxY = Math.max(maxY, p.y);
+            p.x *= ratio;
+            p.y *= ratio;
         }
         for(Point p : outside) {
-            minX = Math.min(minX, p.x);
-            minY = Math.min(minY, p.y);
-
-            maxX = Math.max(maxX, p.x);
-            maxY = Math.max(maxY, p.y);
+            p.x *= ratio;
+            p.y *= ratio;
         }
-        minX -= 5;
-        minY -= 5;
-        maxX += 5;
-        maxY += 5;
-
-        ArrayList<Point> cloneInside = new ArrayList<>();
-        ArrayList<Point> cloneOutside = new ArrayList<>();
-        for(Point p : inside) cloneInside.add(new Point(p.x, p.y));
-        for(Point p : outside) cloneOutside.add(new Point(p.x, p.y));
-
-        Intersect();
-
-        for(int i = 0; i < cloneInside.size(); i++) {
-            if(Math.sqrt(dist2(inside.get(i), outside.get(i))) > 200) {
-                Log.i("Circuit", "I do think Intersect did something bad. Track width is " +
-                        Math.sqrt(dist2(inside.get(i), outside.get(i))) + "...");
-
-                //let's backtrack!
-                int j=i;
-                while(Math.abs(Math.sqrt(dist2(inside.get(j), outside.get(j))) - WIDTH*2) > 5) {
-                    j = (j - 1);
-                    if(j < 0) j = inside.size() - 1;
-                    if(j >= inside.size()) j = 0;
-                }
-
-                j++;
-                if(j < 0) j = inside.size() - 1;
-                if(j >= inside.size()) j = 0;
-
-                while(Math.abs(Math.sqrt(dist2(inside.get(j), outside.get(j))) - WIDTH*2) > 5) {
-                    //hack back the original pair of points
-                    inside.set(j, cloneInside.get(j));
-                    outside.set(j, cloneOutside.get(j));
-
-                    j++;
-                    if(j < 0) j = inside.size() - 1;
-                    if(j >= inside.size()) j = 0;
-                }
-
-                dirty = true;
-            }
-        }
+        minX *= ratio;
+        minY *= ratio;
+        maxX *= ratio;
+        maxY *= ratio;
     }
 
     public boolean isDirty() {
@@ -115,7 +106,10 @@ public class Circuit implements Parcelable {
     }
 
     private void Intersect(){
+        dirty = false;
+
         int n = inside.size();
+
         for(int i=0;i<n;++i) {
             for(int j=0;j<i-1;++j) {
                 if(SegementIntersection(inside.get(i), inside.get((i - 1+n)%n), inside.get(j), inside.get((j - 1 + n)%n))) {
@@ -124,11 +118,25 @@ public class Circuit implements Parcelable {
                     int ey = (int)(inside.get(i).y + (inside.get(i-1).y-inside.get(i).y)*t);
                     if(j+n-i+1>i-1-j)
                     {
-                        for(int k=j;k<=i-1;++k)
-                            inside.get(k).set(ex,ey);
+                        Log.d("Circuit", "I am removing "+(i-1-j)+" points apparently [inside]");
+                        if(i-1-j > NOISE_POINT_REMOVE_THRESHOLD) {
+                            Log.d("Circuit", "This is too much! Don't do that!");
+                            dirty = true;
+                            return;
+                        } else {
+                            for (int k = j; k <= i - 1; ++k)
+                                inside.get(k).set(ex, ey);
+                        }
                     } else {
-                        for(int k=i;k<=j+n;++k)
-                            inside.get(k%n).set(ex,ey);
+                        Log.d("Circuit", "I am removing "+(j+n-i)+" points apparently [inside]");
+                        if(j+n-i > NOISE_POINT_REMOVE_THRESHOLD) {
+                            Log.d("Circuit", "This is too much! Don't do that!");
+                            dirty = true;
+                            return;
+                        } else {
+                            for(int k=i;k<=j+n;++k)
+                                inside.get(k%n).set(ex,ey);
+                        }
                     }
                     break;
                 }
@@ -147,11 +155,25 @@ public class Circuit implements Parcelable {
                     boolean bool2 = Math.abs(outside.get(j).x-outside.get((j-1+n)%n).x)>=2.0 * Math.abs(outside.get(j).x - ex);
                     if(j+n-i+1>i-1-j)
                     {
-                        for(int k=j;k<=i-1;++k)
-                            outside.get(k).set(ex,ey);
+                        Log.d("Circuit", "I am removing "+(i-1-j)+" points apparently [outside]");
+                        if(i-1-j > NOISE_POINT_REMOVE_THRESHOLD) {
+                            Log.d("Circuit", "This is too much! Don't do that!");
+                            dirty = true;
+                            return;
+                        } else {
+                            for (int k = j; k <= i - 1; ++k)
+                                outside.get(k).set(ex, ey);
+                        }
                     } else {
-                        for(int k=i;k<=j+n;++k)
-                            outside.get(k%n).set(ex,ey);
+                        Log.d("Circuit", "I am removing "+(j+n-i)+" points apparently [outside]");
+                        if(j+n-i > NOISE_POINT_REMOVE_THRESHOLD) {
+                            Log.d("Circuit", "This is too much! Don't do that!");
+                            dirty = true;
+                            return;
+                        } else {
+                            for (int k = i; k <= j + n; ++k)
+                                outside.get(k % n).set(ex, ey);
+                        }
                     }
                     break;
                 }
